@@ -1,4 +1,4 @@
-package org.apostolis.common;
+package org.apostolis.common.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

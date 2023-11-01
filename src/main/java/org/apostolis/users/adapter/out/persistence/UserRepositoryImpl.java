@@ -1,6 +1,7 @@
 package org.apostolis.users.adapter.out.persistence;
 
 import org.apostolis.common.DbUtils;
+import org.apostolis.exception.DatabaseException;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.users.application.ports.in.RegisterCommand;
 import org.apostolis.users.application.ports.out.UserRepository;
@@ -21,13 +22,13 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void save(RegisterCommand command, PasswordEncoder passwordEncoder) {
+    public void save(User user, PasswordEncoder passwordEncoder) {
         DbUtils.ThrowingConsumer<Connection,Exception> insertUserIntoDb = (conn) -> {
             try(PreparedStatement insert_stm = conn.prepareStatement(
                     "INSERT INTO Users (username,password,role) VALUES(?,?,?)")){
-                insert_stm.setString(1, command.username());
-                insert_stm.setString(2, passwordEncoder.encodePassword(command.password()));
-                insert_stm.setString(3, command.role());
+                insert_stm.setString(1, user.username());
+                insert_stm.setString(2, passwordEncoder.encodePassword(user.password()));
+                insert_stm.setString(3, user.role());
                 insert_stm.executeUpdate();
             }
         };
@@ -36,7 +37,7 @@ public class UserRepositoryImpl implements UserRepository {
             logger.info("User saved successfully in the database.");
         }catch (Exception e){
             logger.error("User didn't saved.");
-            throw new RuntimeException(e.getMessage());
+            throw new DatabaseException("User didn't saved",e);
         }
     }
 
@@ -56,9 +57,9 @@ public class UserRepositoryImpl implements UserRepository {
                     rs.beforeFirst();
                     while(rs.next()){
                         user = new User(
-                                rs.getString("username"),
-                                rs.getString("password"),
-                                rs.getString("role")
+                            rs.getString("username"),
+                            rs.getString("password"),
+                            rs.getString("role")
                         );
                     }
                 }else{
@@ -71,7 +72,7 @@ public class UserRepositoryImpl implements UserRepository {
             return dbUtils.doInTransaction(retrieveUser);
         }catch(Exception e){
             logger.error("User could not be retrieved");
-            throw new RuntimeException();
+            throw new DatabaseException("User could not be retrieved",e);
         }
     }
 
@@ -91,7 +92,7 @@ public class UserRepositoryImpl implements UserRepository {
             return dbUtils.doInTransaction(get_user_id);
         }catch(Exception e){
             logger.error("Could not retrieve the id from username: "+username);
-            throw  new RuntimeException(e);
+            throw new DatabaseException("Could not retrieve the id from username: "+username,e);
         }
     }
 
@@ -111,7 +112,7 @@ public class UserRepositoryImpl implements UserRepository {
             return dbUtils.doInTransaction(get_username);
         }catch(Exception e){
             logger.error("Could not retrieve the username with id: "+userId);
-            throw  new RuntimeException(e);
+            throw new DatabaseException("Could not retrieve the username with id: "+userId,e);
         }
     }
 }

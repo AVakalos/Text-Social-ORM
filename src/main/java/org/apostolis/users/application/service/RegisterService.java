@@ -1,9 +1,11 @@
 package org.apostolis.users.application.service;
 
+import org.apostolis.exception.DatabaseException;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.users.application.ports.in.RegisterUseCase;
 import org.apostolis.users.application.ports.in.RegisterCommand;
 import org.apostolis.users.application.ports.out.UserRepository;
+import org.apostolis.users.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,12 +22,13 @@ public class RegisterService implements RegisterUseCase {
     }
 
     @Override
-    public void registerUser(RegisterCommand command) throws Exception {
+    public void registerUser(RegisterCommand command) throws IllegalArgumentException, DatabaseException {
         if(repository.getByUsername(command.username()) != null){
             logger.warn("Username is already taken.");
             throw new IllegalArgumentException("Username is already taken.");
         }
-        repository.save(command, passwordEncoder);
+        User user = new User(command.username(), command.password(), command.role());
+        repository.save(user, passwordEncoder);
         logger.info("User registered successfully");
     }
 }

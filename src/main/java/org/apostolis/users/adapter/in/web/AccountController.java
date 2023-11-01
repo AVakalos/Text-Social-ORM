@@ -5,6 +5,8 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.InternalServerErrorResponse;
+import jakarta.validation.ConstraintViolationException;
+import org.apostolis.exception.AuthenticationException;
 import org.apostolis.security.TokenManager;
 import org.apostolis.users.application.ports.in.LoginUseCase;
 import org.apostolis.users.application.ports.in.LoginCommand;
@@ -36,28 +38,24 @@ public class AccountController {
             throw new BadRequestResponse("User was not registered!\n" + c.getCause().getMessage());
         }
         catch(Exception e){
-            throw new InternalServerErrorResponse("User was not registered!\n"+e.getMessage());
+            throw new BadRequestResponse("User was not registered!\n"+e.getMessage());
         }
     }
 
-    public void login(Context ctx){
+    public void login(Context ctx) {
         try {
             LoginCommand loginCommand = ctx.bodyAsClass(LoginCommand.class);
             String token = loginUseCase.loginUser(loginCommand);
             ctx.json(new AuthResponse(loginCommand.username(), token));
-        }catch(ValueInstantiationException c){
-            throw new BadRequestResponse("User login failed!\n"+c.getCause().getMessage());
-        }
-        catch (Exception e) {
-            throw new InternalServerErrorResponse("User login failed!\n"+e.getMessage());
+        } catch (AuthenticationException e ) {
+            throw new BadRequestResponse(e.getMessage());
         }
     }
 
     public void authenticate(Context ctx){
-        String token = ctx.header("Authorization");
         try{
-            loginUseCase.authenticate(token);
-        }catch(Exception e){
+            loginUseCase.authenticate(ctx.header("Authorization"));
+        }catch(AuthenticationException e){
             throw new BadRequestResponse(e.getMessage());
         }
     }

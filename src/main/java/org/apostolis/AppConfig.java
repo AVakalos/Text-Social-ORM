@@ -7,15 +7,18 @@ import org.apostolis.security.JjwtTokenManagerImpl;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.security.TokenManager;
 import org.apostolis.users.adapter.in.web.AccountController;
-import org.apostolis.users.adapter.in.web.FollowingController;
-import org.apostolis.users.adapter.out.persistence.FollowingRepositoryImpl;
+import org.apostolis.users.adapter.in.web.FollowsController;
+import org.apostolis.users.adapter.in.web.GetFollowsController;
+import org.apostolis.users.adapter.out.persistence.FollowsRepositoryImpl;
 import org.apostolis.users.adapter.out.persistence.UserRepositoryImpl;
-import org.apostolis.users.application.ports.in.FollowUseCase;
+import org.apostolis.users.application.ports.in.FollowsUseCase;
+import org.apostolis.users.application.ports.in.GetFollowersAndUsersToFollowUseCase;
 import org.apostolis.users.application.ports.in.LoginUseCase;
 import org.apostolis.users.application.ports.in.RegisterUseCase;
-import org.apostolis.users.application.ports.out.FollowingRepository;
+import org.apostolis.users.application.ports.out.FollowsRepository;
 import org.apostolis.users.application.ports.out.UserRepository;
-import org.apostolis.users.application.service.FollowingService;
+import org.apostolis.users.application.service.FollowsService;
+import org.apostolis.users.application.service.GetFollowsService;
 import org.apostolis.users.application.service.LoginService;
 import org.apostolis.users.application.service.RegisterService;
 
@@ -32,7 +35,7 @@ public class AppConfig {
 
     private final UserRepository userRepository;
 
-    private final FollowingRepository followingRepository;
+    private final FollowsRepository followsRepository;
 
     private final TokenManager tokenManager;
 
@@ -42,11 +45,15 @@ public class AppConfig {
 
     private final LoginUseCase loginService;
 
-    private final FollowUseCase followingService;
+    private final FollowsUseCase followsService;
+
+    private final GetFollowersAndUsersToFollowUseCase getFollowsService;
 
     private final AccountController accountController;
 
-    private final FollowingController followingController;
+    private final FollowsController followsController;
+
+    private final GetFollowsController getFollowsController;
 
 
 
@@ -61,12 +68,14 @@ public class AppConfig {
         passwordEncoder = new PasswordEncoder();
         tokenManager = new JjwtTokenManagerImpl();
         userRepository = new UserRepositoryImpl(dbUtils);
-        followingRepository = new FollowingRepositoryImpl(dbUtils);
+        followsRepository = new FollowsRepositoryImpl(dbUtils);
         registerService = new RegisterService(userRepository, passwordEncoder);
         loginService = new LoginService(userRepository, tokenManager, passwordEncoder);
         accountController = new AccountController(registerService, loginService);
-        followingService = new FollowingService(followingRepository, userRepository);
-        followingController = new FollowingController(followingService, tokenManager);
+        followsService = new FollowsService(followsRepository);
+        followsController = new FollowsController(followsService, tokenManager);
+        getFollowsService = new GetFollowsService(followsRepository);
+        getFollowsController = new GetFollowsController(getFollowsService, tokenManager);
 
 
 
@@ -120,7 +129,11 @@ public class AppConfig {
         return accountController;
     }
 
-    public FollowingController getFollowingController() {
-        return followingController;
+    public FollowsController getFollowsController() {
+        return followsController;
+    }
+
+    public GetFollowsController getGetFollowsController() {
+        return getFollowsController;
     }
 }

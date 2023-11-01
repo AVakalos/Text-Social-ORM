@@ -1,7 +1,7 @@
 package org.apostolis.users.application.service;
 
-import io.javalin.http.ForbiddenResponse;
 import org.apostolis.App;
+import org.apostolis.exception.AuthenticationException;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.security.TokenManager;
 import org.apostolis.users.application.ports.in.LoginUseCase;
@@ -38,7 +38,7 @@ public class LoginService implements LoginUseCase {
     }
 
     @Override
-    public String loginUser(LoginCommand loginCommand) throws Exception{
+    public String loginUser(LoginCommand loginCommand) throws AuthenticationException{
         String inserted_username = loginCommand.username();
         String inserted_password = loginCommand.password();
         User user = repository.getByUsername(inserted_username);
@@ -47,23 +47,24 @@ public class LoginService implements LoginUseCase {
             logger.info("User logged in successfully");
             return token;
         }else{
-            throw new Exception("Incorrect password or username");
+            throw new AuthenticationException("Incorrect password or username");
         }
     }
 
     @Override
-    public void authenticate(String token) throws Exception {
+    public void authenticate(String token) throws AuthenticationException {
         if (token != null){
             token = token.substring(7);
         }else{
             logger.error("Token is missing from incoming request");
-            throw new Exception("Authentication token missing");
+            throw new AuthenticationException("Authentication token missing");
         }
         boolean isTokenValid = tokenManager.validateToken(token);
         if (!isTokenValid){
             logger.error("Token is invalid");
-            throw new Exception("Authentication token is invalid");
+            throw new AuthenticationException("Authentication token is invalid");
         }
+        // Update the current user id
         App.currentUserId.set(repository.getUserIdFromUsername(tokenManager.extractUsername(token)));
         logger.info("User authenticated");
     }

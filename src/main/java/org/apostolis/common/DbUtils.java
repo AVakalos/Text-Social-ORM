@@ -49,13 +49,14 @@ public class DbUtils {
             System.out.println(e.getMessage());
             System.out.println("Rolling back the transaction.");
             conn.rollback();
+            conn.close();
             thlconn.remove();
             throw new RuntimeException(e);
         }
         if(is_parent_transaction){
+            conn.close();
             thlconn.remove();
         }
-        conn.close();
         return rs;
     }
 
@@ -77,12 +78,14 @@ public class DbUtils {
             System.out.println(e.getMessage());
             System.out.println("Rolling back the transaction.");
             conn.rollback();
+            conn.close();
             thlconn.remove();
             throw new RuntimeException(e);
         }
         if(is_parent_transaction){
+            conn.close();
             thlconn.remove();
         }
-        conn.close();
+
     }
 }

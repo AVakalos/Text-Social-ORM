@@ -1,4 +1,4 @@
-package org.apostolis.common;
+package org.apostolis.common.validation;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.ConstraintViolation;

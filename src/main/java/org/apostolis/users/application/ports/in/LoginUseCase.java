@@ -1,7 +1,10 @@
 package org.apostolis.users.application.ports.in;
 
-public interface LoginUseCase {
-    String loginUser(LoginCommand loginCommand) throws Exception;
+import org.apostolis.exception.AuthenticationException;
+import org.eclipse.jetty.server.Authentication;
 
-    void authenticate(String token) throws Exception;
+public interface LoginUseCase {
+    String loginUser(LoginCommand loginCommand) throws AuthenticationException;
+
+    void authenticate(String token) throws AuthenticationException;
 }

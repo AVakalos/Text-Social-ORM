@@ -5,8 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.apostolis.users.domain.Role;
-import org.apostolis.common.SelfValidating;
-import org.apostolis.common.StringEnumeration;
+import org.apostolis.common.validation.SelfValidating;
+import org.apostolis.common.validation.StringEnumeration;
 
 public record RegisterCommand(
         @NotNull
