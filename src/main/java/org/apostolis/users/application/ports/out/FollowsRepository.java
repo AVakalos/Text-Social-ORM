@@ -1,7 +1,6 @@
 package org.apostolis.users.application.ports.out;
 
 import org.apostolis.exception.DatabaseException;
-import org.apostolis.users.application.ports.in.FollowsCommand;
 
 import java.util.ArrayList;
 
@@ -10,6 +9,5 @@ public interface FollowsRepository {
     void deleteFollow(int user) throws DatabaseException;
 
     ArrayList<String> getFollowers(int user) throws DatabaseException;
-
     ArrayList<String> getUsersToFollow(int user) throws DatabaseException;
 }

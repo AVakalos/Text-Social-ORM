@@ -14,12 +14,12 @@ public class GetFollowsService implements GetFollowersAndUsersToFollowUseCase {
     }
 
     @Override
-    public ArrayList<String> getFollowers(GetFollowsQuery query) {
-        return followsRepository.getFollowers(query.user());
+    public ArrayList<String> getFollowers(int user) {
+        return followsRepository.getFollowers(user);
     }
 
     @Override
-    public ArrayList<String> getUsersToFollow(GetFollowsQuery query) {
-        return followsRepository.getUsersToFollow(query.user());
+    public ArrayList<String> getUsersToFollow(int user) {
+        return followsRepository.getUsersToFollow(user);
     }
 }

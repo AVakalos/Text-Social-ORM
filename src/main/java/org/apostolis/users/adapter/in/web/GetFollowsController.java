@@ -22,10 +22,8 @@ public class GetFollowsController {
     public void getFollowers(Context ctx){
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
-        GetFollowersAndUsersToFollowUseCase.GetFollowsQuery query =
-                new GetFollowersAndUsersToFollowUseCase.GetFollowsQuery(App.currentUserId.get());
 
-        ArrayList<String> results = getFollowersAndUsersToFollowUseCase.getFollowers(query);
+        ArrayList<String> results = getFollowersAndUsersToFollowUseCase.getFollowers(App.currentUserId.get());
         ctx.result(user+" followers: "+results.toString());
 
     }
@@ -33,10 +31,8 @@ public class GetFollowsController {
     public void getUsersToFollow(Context ctx){
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
-        GetFollowersAndUsersToFollowUseCase.GetFollowsQuery query =
-                new GetFollowersAndUsersToFollowUseCase.GetFollowsQuery(App.currentUserId.get());
 
-        ArrayList<String> results = getFollowersAndUsersToFollowUseCase.getUsersToFollow(query);
+        ArrayList<String> results = getFollowersAndUsersToFollowUseCase.getUsersToFollow(App.currentUserId.get());
         ctx.result(user+" can follow: "+results.toString());
     }
 }

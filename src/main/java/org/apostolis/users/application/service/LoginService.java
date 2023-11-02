@@ -69,5 +69,4 @@ public class LoginService implements LoginUseCase {
         logger.info("User authenticated");
     }
 
-
 }

@@ -1,27 +1,16 @@
 package org.apostolis.users.adapter.in.web;
 
-import com.fasterxml.jackson.databind.exc.ValueInstantiationException;
-import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
-import io.javalin.http.ForbiddenResponse;
-import io.javalin.http.InternalServerErrorResponse;
-import jakarta.validation.ConstraintViolationException;
-import org.apostolis.exception.AuthenticationException;
-import org.apostolis.security.TokenManager;
 import org.apostolis.users.application.ports.in.LoginUseCase;
 import org.apostolis.users.application.ports.in.LoginCommand;
 import org.apostolis.users.application.ports.in.RegisterUseCase;
 import org.apostolis.users.application.ports.in.RegisterCommand;
 import org.apostolis.users.domain.AuthResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AccountController {
 
     private final RegisterUseCase registerUseCase;
     private final LoginUseCase loginUseCase;
-
-    private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
 
     public AccountController(RegisterUseCase registerUseCase, LoginUseCase loginUseCase) {
         this.registerUseCase = registerUseCase;
@@ -29,34 +18,18 @@ public class AccountController {
     }
 
     public void signup(Context ctx){
-
-        try {
-            RegisterCommand registerCommand = ctx.bodyAsClass(RegisterCommand.class);
-            registerUseCase.registerUser(registerCommand);
-            ctx.result("User registered successfully!");
-        }catch(ValueInstantiationException c) {
-            throw new BadRequestResponse("User was not registered!\n" + c.getCause().getMessage());
-        }
-        catch(Exception e){
-            throw new BadRequestResponse("User was not registered!\n"+e.getMessage());
-        }
+        RegisterCommand registerCommand = ctx.bodyAsClass(RegisterCommand.class);
+        registerUseCase.registerUser(registerCommand);
+        ctx.result("User registered successfully!");
     }
 
     public void login(Context ctx) {
-        try {
-            LoginCommand loginCommand = ctx.bodyAsClass(LoginCommand.class);
-            String token = loginUseCase.loginUser(loginCommand);
-            ctx.json(new AuthResponse(loginCommand.username(), token));
-        } catch (AuthenticationException e ) {
-            throw new BadRequestResponse(e.getMessage());
-        }
+        LoginCommand loginCommand = ctx.bodyAsClass(LoginCommand.class);
+        String token = loginUseCase.loginUser(loginCommand);
+        ctx.json(new AuthResponse(loginCommand.username(), token));
     }
 
     public void authenticate(Context ctx){
-        try{
-            loginUseCase.authenticate(ctx.header("Authorization"));
-        }catch(AuthenticationException e){
-            throw new BadRequestResponse(e.getMessage());
-        }
+        loginUseCase.authenticate(ctx.header("Authorization"));
     }
 }

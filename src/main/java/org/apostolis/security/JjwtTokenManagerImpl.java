@@ -1,6 +1,5 @@
 package org.apostolis.security;
 
-import io.javalin.http.ForbiddenResponse;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -43,9 +42,9 @@ public class JjwtTokenManagerImpl implements TokenManager{
     }
 
     @Override
-    public Role extractRole(String token) throws InvalidTokenException {
+    public String extractRole(String token) throws InvalidTokenException {
         try {
-            return Role.valueOf(Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("Role").toString());
+            return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().get("Role").toString();
         }catch (Exception ex){
             throw new InvalidTokenException(ex);
         }

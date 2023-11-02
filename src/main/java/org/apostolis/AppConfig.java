@@ -2,7 +2,17 @@ package org.apostolis;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
+import org.apostolis.comments.adapter.in.web.CreateCommentController;
+import org.apostolis.comments.adapter.out.persistence.CommentRepositoryImpl;
+import org.apostolis.comments.application.ports.in.CreateCommentUseCase;
+import org.apostolis.comments.application.ports.out.CommentRepository;
+import org.apostolis.comments.application.service.CommentService;
 import org.apostolis.common.DbUtils;
+import org.apostolis.posts.adapter.in.web.CreatePostController;
+import org.apostolis.posts.adapter.out.persistence.PostRepositoryImpl;
+import org.apostolis.posts.application.ports.in.CreatePostUseCase;
+import org.apostolis.posts.application.ports.out.PostRepository;
+import org.apostolis.posts.application.service.PostService;
 import org.apostolis.security.JjwtTokenManagerImpl;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.security.TokenManager;
@@ -31,30 +41,16 @@ import java.time.ZoneId;
 import java.util.Properties;
 
 public class AppConfig {
-    private final DbUtils dbUtils;
-
-    private final UserRepository userRepository;
-
-    private final FollowsRepository followsRepository;
-
-    private final TokenManager tokenManager;
-
-    private final PasswordEncoder passwordEncoder;
-
-    private final RegisterUseCase registerService;
-
-    private final LoginUseCase loginService;
-
-    private final FollowsUseCase followsService;
-
-    private final GetFollowersAndUsersToFollowUseCase getFollowsService;
-
     private final AccountController accountController;
-
     private final FollowsController followsController;
-
     private final GetFollowsController getFollowsController;
+    private final CreatePostController createPostController;
+    private final CreateCommentController createCommentController;
 
+
+    private static int FREE_POST_SIZE;
+    private static int PREMIUM_POST_SIZE;
+    private static int FREE_MAX_COMMENTS;
 
 
 
@@ -64,18 +60,27 @@ public class AppConfig {
 
 
     public AppConfig(String mode){
-        dbUtils = new DbUtils();
-        passwordEncoder = new PasswordEncoder();
-        tokenManager = new JjwtTokenManagerImpl();
-        userRepository = new UserRepositoryImpl(dbUtils);
-        followsRepository = new FollowsRepositoryImpl(dbUtils);
-        registerService = new RegisterService(userRepository, passwordEncoder);
-        loginService = new LoginService(userRepository, tokenManager, passwordEncoder);
+        DbUtils dbUtils = new DbUtils();
+        PasswordEncoder passwordEncoder = new PasswordEncoder();
+        TokenManager tokenManager = new JjwtTokenManagerImpl();
+
+        UserRepository userRepository = new UserRepositoryImpl(dbUtils);
+        FollowsRepository followsRepository = new FollowsRepositoryImpl(dbUtils);
+        PostRepository postRepository = new PostRepositoryImpl(dbUtils);
+        CommentRepository commentRepository = new CommentRepositoryImpl(dbUtils);
+
+        RegisterUseCase registerService = new RegisterService(userRepository, passwordEncoder);
+        LoginUseCase loginService = new LoginService(userRepository, tokenManager, passwordEncoder);
+        FollowsUseCase followsService = new FollowsService(followsRepository);
+        GetFollowersAndUsersToFollowUseCase getFollowsService = new GetFollowsService(followsRepository);
+        CreatePostUseCase postService = new PostService(postRepository);
+        CreateCommentUseCase commentService = new CommentService(commentRepository);
+
         accountController = new AccountController(registerService, loginService);
-        followsService = new FollowsService(followsRepository);
         followsController = new FollowsController(followsService, tokenManager);
-        getFollowsService = new GetFollowsService(followsRepository);
         getFollowsController = new GetFollowsController(getFollowsService, tokenManager);
+        createPostController = new CreatePostController(postService, tokenManager);
+        createCommentController = new CreateCommentController(commentService, tokenManager);
 
 
 
@@ -83,6 +88,11 @@ public class AppConfig {
 
         if(mode.equals("production")){
             Properties appProps = readProperties();
+
+            FREE_POST_SIZE = 1000;
+            PREMIUM_POST_SIZE = 3000;
+            FREE_MAX_COMMENTS = 5;
+
 
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(appProps.getProperty("databaseUrl"));
@@ -92,6 +102,10 @@ public class AppConfig {
 
         } else if (mode.equals("test")) {
             Properties appProps = readProperties();
+
+            FREE_POST_SIZE = 20;
+            PREMIUM_POST_SIZE = 30;
+            FREE_MAX_COMMENTS = 2;
 
             HikariConfig config = new HikariConfig();
             config.setJdbcUrl(appProps.getProperty("testDatabaseUrl"));
@@ -120,9 +134,16 @@ public class AppConfig {
         return ds.getConnection();
     }
 
+    public static int getFreePostSize() {
+        return FREE_POST_SIZE;
+    }
 
-    public DbUtils getDbUtils() {
-        return dbUtils;
+    public static int getPremiumPostSize() {
+        return PREMIUM_POST_SIZE;
+    }
+
+    public static int getFreeMaxComments() {
+        return FREE_MAX_COMMENTS;
     }
 
     public AccountController getUserController() {
@@ -135,5 +156,13 @@ public class AppConfig {
 
     public GetFollowsController getGetFollowsController() {
         return getFollowsController;
+    }
+
+    public CreatePostController getCreatePostController() {
+        return createPostController;
+    }
+
+    public CreateCommentController getCreateCommentController() {
+        return createCommentController;
     }
 }
