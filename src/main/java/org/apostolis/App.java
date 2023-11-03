@@ -17,6 +17,7 @@ import org.apostolis.posts.domain.PostCreationException;
 import org.apostolis.users.adapter.in.web.AccountController;
 import org.apostolis.users.adapter.in.web.FollowsController;
 import org.apostolis.users.adapter.in.web.GetFollowsController;
+import org.apostolis.users.adapter.in.web.UserControllersInjector;
 
 
 public class App 
@@ -25,6 +26,7 @@ public class App
     public static void main( String[] args )
     {
         AppConfig appConfig = new AppConfig("production");
+
         AccountController accountController = appConfig.getUserController();
         FollowsController followsController = appConfig.getFollowsController();
         GetFollowsController getFollowsController = appConfig.getGetFollowsController();
@@ -43,9 +45,11 @@ public class App
         app.exception(DatabaseException.class,handler);
         app.exception(IllegalArgumentException.class,handler);
         app.exception(ConstraintViolationException.class,handler);
-        app.exception(ValueInstantiationException.class,handler);
         app.exception(PostCreationException.class,handler);
         app.exception(CommentCreationException.class,handler);
+
+        app.exception(ValueInstantiationException.class,
+                (e, ctx)->{throw new BadRequestResponse("Invalid JSON data:\n" + e.getCause().getMessage());});
         app.exception(JsonParseException.class,
                 (e, ctx)->{throw new BadRequestResponse("Use a valid JSON format in the request body");});
         app.exception(JsonMappingException.class,

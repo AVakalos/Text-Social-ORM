@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class FollowsRepositoryImpl implements FollowsRepository {
 
@@ -68,27 +69,26 @@ public class FollowsRepositoryImpl implements FollowsRepository {
     }
 
     @Override
-    public ArrayList<String> getFollowers(int user) throws DatabaseException {
-        DbUtils.ThrowingFunction<Connection, ArrayList<String>, Exception> get_followers = (conn) -> {
-            String query = "WITH follower_ids AS (SELECT follower_id " +
+    public HashMap<Integer,String> getFollowers(int user) throws DatabaseException {
+        DbUtils.ThrowingFunction<Connection, HashMap<Integer,String>, Exception> get_followers = (conn) -> {
+            String query = "WITH follower_ids AS (SELECT DISTINCT user_id " +
                     "   FROM followers " +
-                    "   WHERE user_id = ?) " +
-                    "SELECT username AS followers " +
-                    "FROM users " +
+                    "   WHERE following_id = ?) " +
+                    "SELECT u.user_id AS follower_id, username " +
+                    "FROM users AS u " +
                     "INNER JOIN follower_ids AS f " +
-                    "ON user_id = f.follower_id;";
-            ArrayList<String> results = new ArrayList<>();
+                    "ON u.user_id = f.user_id;";
+            HashMap<Integer,String> results = new HashMap<>();
             try(PreparedStatement pst = conn.prepareStatement(query)){
                 pst.setInt(1,user);
                 ResultSet rs = pst.executeQuery();
                 while(rs.next()){
-                    String comment = rs.getString("followers");
-                    if(comment != null){
-                        results.add(comment);
-                    }
+                    int id = rs.getInt("follower_id");
+                    String username = rs.getString("username");
+                    results.put(id, username);
                 }
-                return results;
             }
+            return results;
         };
         try{
             return dbUtils.doInTransaction(get_followers);
@@ -99,25 +99,56 @@ public class FollowsRepositoryImpl implements FollowsRepository {
     }
 
     @Override
-    public ArrayList<String> getUsersToFollow(int user) throws DatabaseException {
-        DbUtils.ThrowingFunction<Connection, ArrayList<String>, Exception> get_users_to_follow = (conn) -> {
-            String query = "SELECT username AS to_follow " +
+    public HashMap<Integer, String> getFollowing(int user) throws DatabaseException {
+        DbUtils.ThrowingFunction<Connection, HashMap<Integer,String>, Exception> get_following_users = (conn) -> {
+            String query = "WITH following_ids AS (" +
+                            "    SELECT following_id" +
+                            "    FROM followers" +
+                            "    WHERE user_id = ?" +
+                            ")" +
+                            "SELECT user_id AS following, username " +
+                            "FROM users " +
+                            "INNER JOIN following_ids " +
+                            "ON user_id = following_id;";
+            HashMap<Integer,String> results = new HashMap<>();
+            try(PreparedStatement pst = conn.prepareStatement(query)){
+                pst.setInt(1,user);
+                ResultSet rs = pst.executeQuery();
+                while(rs.next()){
+                    int id = rs.getInt("following");
+                    String username = rs.getString("username");
+                    results.put(id, username);
+                }
+            }
+            return results;
+        };
+        try{
+            return dbUtils.doInTransaction(get_following_users);
+        }catch(Exception e){
+            logger.error("No following users for: "+user);
+            throw new DatabaseException("No following users for: "+user,e);
+        }
+    }
+
+    @Override
+    public HashMap<Integer,String> getUsersToFollow(int user) throws DatabaseException {
+        DbUtils.ThrowingFunction<Connection, HashMap<Integer,String>, Exception> get_users_to_follow = (conn) -> {
+            String query = "SELECT user_id AS to_follow, username " +
                     "FROM users " +
                     "WHERE user_id != ? " +
                     "AND users.user_id NOT IN " +
-                    "    (SELECT follower_id " +
+                    "    (SELECT following_id " +
                     "     FROM followers " +
                     "     WHERE user_id = ?);";
-            ArrayList<String> results = new ArrayList<>();
+            HashMap<Integer,String> results = new HashMap<>();
             try(PreparedStatement pst = conn.prepareStatement(query)){
                 pst.setInt(1,user);
                 pst.setInt(2,user);
                 ResultSet rs = pst.executeQuery();
                 while(rs.next()){
-                    String comment = rs.getString("to_follow");
-                    if(comment != null){
-                        results.add(comment);
-                    }
+                    int to_follow_id = rs.getInt("to_follow");
+                    String to_follow_username = rs.getString("username");
+                    results.put(to_follow_id, to_follow_username);
                 }
                 return results;
             }

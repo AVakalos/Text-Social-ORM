@@ -6,6 +6,7 @@ import org.apostolis.security.TokenManager;
 import org.apostolis.users.application.ports.in.GetFollowersAndUsersToFollowUseCase;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
 
 public class GetFollowsController {
@@ -23,7 +24,7 @@ public class GetFollowsController {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
 
-        ArrayList<String> results = getFollowersAndUsersToFollowUseCase.getFollowers(App.currentUserId.get());
+        HashMap<Integer,String> results = getFollowersAndUsersToFollowUseCase.getFollowers(App.currentUserId.get());
         ctx.result(user+" followers: "+results.toString());
 
     }
@@ -32,7 +33,7 @@ public class GetFollowsController {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
 
-        ArrayList<String> results = getFollowersAndUsersToFollowUseCase.getUsersToFollow(App.currentUserId.get());
+        HashMap<Integer,String> results = getFollowersAndUsersToFollowUseCase.getUsersToFollow(App.currentUserId.get());
         ctx.result(user+" can follow: "+results.toString());
     }
 }

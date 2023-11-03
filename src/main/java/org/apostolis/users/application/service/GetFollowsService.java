@@ -4,6 +4,7 @@ import org.apostolis.users.application.ports.in.GetFollowersAndUsersToFollowUseC
 import org.apostolis.users.application.ports.out.FollowsRepository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class GetFollowsService implements GetFollowersAndUsersToFollowUseCase {
 
@@ -14,12 +15,12 @@ public class GetFollowsService implements GetFollowersAndUsersToFollowUseCase {
     }
 
     @Override
-    public ArrayList<String> getFollowers(int user) {
+    public HashMap<Integer,String> getFollowers(int user) {
         return followsRepository.getFollowers(user);
     }
 
     @Override
-    public ArrayList<String> getUsersToFollow(int user) {
+    public HashMap<Integer,String> getUsersToFollow(int user) {
         return followsRepository.getUsersToFollow(user);
     }
 }
