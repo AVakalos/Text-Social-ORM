@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 public class FollowsRepositoryImpl implements FollowsRepository {
@@ -44,7 +43,7 @@ public class FollowsRepositoryImpl implements FollowsRepository {
     public void deleteFollow(int user) throws IllegalArgumentException, DatabaseException {
         DbUtils.ThrowingConsumer<Connection,Exception> deleteFollowerFromDb = (conn) -> {
             try(PreparedStatement delete_follower_stm = conn.prepareStatement(
-                    "DELETE FROM followers WHERE user_id = ? AND follower_id=?")){
+                    "DELETE FROM followers WHERE user_id = ? AND following_id=?")){
                 delete_follower_stm.setInt(1,App.currentUserId.get());
                 delete_follower_stm.setInt(2,user);
                 int count = delete_follower_stm.executeUpdate();

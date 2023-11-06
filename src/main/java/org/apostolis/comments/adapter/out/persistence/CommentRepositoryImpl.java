@@ -4,6 +4,7 @@ import org.apostolis.comments.application.ports.out.CommentRepository;
 import org.apostolis.comments.domain.Comment;
 import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.common.DbUtils;
+import org.apostolis.exception.DatabaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +12,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class CommentRepositoryImpl implements CommentRepository {
 
@@ -67,4 +71,92 @@ public class CommentRepositoryImpl implements CommentRepository {
         }
         return comments_count;
     }
+
+    @Override
+    public HashMap<Integer, HashMap<Integer,String>> getCommentsGivenPostIds(ArrayList<Integer> post_ids, int pageNum, int pageSize) {
+
+        DbUtils.ThrowingFunction<Connection, HashMap<Integer,HashMap<Integer,String>>, Exception> getComments = (conn)->{
+
+            StringBuilder query = new StringBuilder("""
+                    WITH numbered_comments AS(
+                        SELECT *, row_number() over (
+                            partition by post_id
+                            ORDER BY created DESC
+                        ) AS row_number
+                    FROM comments)
+                    SELECT * FROM numbered_comments
+                    WHERE post_id IN(""");
+            for(int id: post_ids){
+                query.append(id).append(",");
+            }
+            query.setCharAt(query.lastIndexOf(","),')');
+            query.append("AND row_number > ? and row_number <= ?");
+            HashMap<Integer,HashMap<Integer,String>> results = new LinkedHashMap<>();
+            try(PreparedStatement stm = conn.prepareStatement(query.toString())){
+                stm.setInt(1,pageNum*pageSize);
+                stm.setInt(2, pageSize*(pageNum+1));
+                ResultSet rs = stm.executeQuery();
+                while(rs.next()){
+                    int id = rs.getInt("post_id");
+                    int comment_id = rs.getInt("comment_id");
+                    String text = rs.getString("text");
+                    if(!results.containsKey(id)) {
+                        results.put(id, new LinkedHashMap<>());
+                    }
+                    results.get(id).put(comment_id,text);
+                }
+            }
+            return results;
+        };
+        try{
+            return dbUtils.doInTransaction(getComments);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException(e.getMessage());
+        }
+    }
+
+
+//    @Override
+//    public HashMap<Integer, String> getLatestCommentsGivenPostIds(ArrayList<Integer> post_ids) {
+//        DbUtils.ThrowingFunction<Connection, HashMap<Integer,String>, Exception> getComments = (conn)->{
+//            StringBuilder query = new StringBuilder(
+//                    "WITH numbered_comments AS (\n" +
+//                    "    SELECT *, row_number() over (\n" +
+//                    "                 PARTITION BY post_id\n" +
+//                    "                 order by created DESC\n" +
+//                    "                 ) AS row_number\n" +
+//                    "    FROM comments\n" +
+//                    "    ),\n" +
+//                    "    last_comments AS (\n" +
+//                    "        SELECT *\n" +
+//                    "        FROM numbered_comments\n" +
+//                    "        WHERE numbered_comments.row_number = 1\n" +
+//                    "    )\n" +
+//                    "SELECT comment_id, post_id, text, created\n" +
+//                    "FROM last_comments WHERE post_id IN(");
+//            for(int id: post_ids){
+//                query.append(id).append(",");
+//            }
+//            query.setCharAt(query.lastIndexOf(","),')');
+//            HashMap<Integer,String> results = new HashMap<>();
+//            try(PreparedStatement stm = conn.prepareStatement(query.toString())){
+//                ResultSet rs = stm.executeQuery();
+//                while(rs.next()){
+//                    int id = rs.getInt("post_id");
+//                    String text = rs.getString("text");
+//                    results.put(id, text);
+//                }
+//            }
+//            return results;
+//        };
+//        try{
+//            return dbUtils.doInTransaction(getComments);
+//        }catch(Exception e){
+//            logger.error(e.getMessage());
+//            throw new DatabaseException(e.getMessage());
+//        }
+//    }
+
+
 }

@@ -8,16 +8,17 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.ExceptionHandler;
 import jakarta.validation.ConstraintViolationException;
 import org.apostolis.comments.adapter.in.web.CreateCommentController;
+import org.apostolis.comments.adapter.in.web.ViewCommentsController;
 import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.exception.AuthenticationException;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.exception.InvalidTokenException;
 import org.apostolis.posts.adapter.in.web.CreatePostController;
+import org.apostolis.posts.adapter.in.web.ViewPostsController;
 import org.apostolis.posts.domain.PostCreationException;
 import org.apostolis.users.adapter.in.web.AccountController;
 import org.apostolis.users.adapter.in.web.FollowsController;
 import org.apostolis.users.adapter.in.web.GetFollowsController;
-import org.apostolis.users.adapter.in.web.UserControllersInjector;
 
 
 public class App 
@@ -32,6 +33,8 @@ public class App
         GetFollowsController getFollowsController = appConfig.getGetFollowsController();
         CreatePostController createPostController = appConfig.getCreatePostController();
         CreateCommentController createCommentController = appConfig.getCreateCommentController();
+        ViewPostsController viewPostsController = appConfig.getPostViewsController();
+        ViewCommentsController viewCommentsController = appConfig.getViewCommentsController();
 
         int port = Integer.parseInt(AppConfig.readProperties().getProperty("port"));
 
@@ -64,15 +67,23 @@ public class App
         app.post("/api/newcomment",createCommentController::createComment);
         app.post("/api/follow", followsController::follow);
         app.delete("/api/unfollow", followsController::unfollow);
-//        app.get("/api/user/{id}/createurl/{post}",operationsController::createUrlForPostAndComments);
-//
-//        app.get("api/user/{id}/followers/posts", viewsController::getFollowersPostsInReverseChrono);
-//        app.get("api/user/{id}/posts",viewsController::getOwnPostsWithLast100CommentsInReverseChrono);
-//        app.get("api/user/{id}/posts/comments",viewsController::getAllCommentsOnOwnPosts);
-//        app.get("api/user/{id}/latestcomments",viewsController::getLatestCommentsOnOwnOrFollowersPosts);
+//        app.get("/api/user/createurl/{post}",operationsController::createUrlForPostAndComments);
+
+        app.get("api/user/following/posts", viewPostsController::getFollowingPosts);
+        app.get("api/user/posts", viewPostsController::getOwnPostsWithLatestNComments);
+        app.get("api/user/posts/comments",viewCommentsController::getCommentsOnOwnPosts);
+        app.get("api/user/posts/latestcomments",viewCommentsController::getLatestCommentsOnOwnOrFollowingPosts);
         app.get("api/user/followers",getFollowsController::getFollowers);
         app.get("api/user/tofollow",getFollowsController::getUsersToFollow);
 //
 //        app.get("<url>",operationsController::decodeLink);
+
+
+        //PostRepositoryImpl postRepository = new PostRepositoryImpl(appConfig.getDbUtils(), followsRepository);
+       // CommentRepository commentRepository = new CommentRepositoryImpl(appConfig.getDbUtils());
+
+        //ArrayList<Integer> ids = new ArrayList<>(List.of(1,2,3));
+        //System.out.println(postRepository.getPostsGivenUsersIds(ids,0,4));
+        //System.out.println(commentRepository.getLatestCommentsGivenPostIds(ids));
     }
 }

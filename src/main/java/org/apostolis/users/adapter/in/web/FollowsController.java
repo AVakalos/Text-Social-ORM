@@ -19,8 +19,6 @@ public class FollowsController{
         this.tokenManager = tokenManager;
     }
 
-    // TODO: Usernames at responses
-
     public void follow(Context ctx){
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
