@@ -51,7 +51,6 @@ public class PostRepositoryImpl implements PostRepository {
     public HashMap<Integer, HashMap<Integer,String>> getPostsGivenUsersIds(ArrayList<Integer> user_ids, int pageNum, int pageSize) {
         DbUtils.ThrowingFunction<Connection, HashMap<Integer,HashMap<Integer,String>>, Exception> getPosts = (conn) -> {
 
-
             StringBuilder query = new StringBuilder("""
                     WITH numbered_posts AS(
                         SELECT *, row_number() over (
@@ -65,16 +64,18 @@ public class PostRepositoryImpl implements PostRepository {
                 query.append(id).append(",");
             }
             query.setCharAt(query.lastIndexOf(","),')');
-            query.append("AND row_number > ? and row_number <= ?");
+            query.append(" AND row_number > ? and row_number <= ?");
 
 
             HashMap<Integer,HashMap<Integer,String>> results = new LinkedHashMap<>();
             try(PreparedStatement stm = conn.prepareStatement(query.toString())){
                 stm.setInt(1,pageNum*pageSize);
                 stm.setInt(2, pageSize*(pageNum+1));
+
                 ResultSet rs = stm.executeQuery();
                 while(rs.next()){
                     int user_id = rs.getInt("user_id");
+
                     int post_id = rs.getInt("post_id");
                     String text = rs.getString("text");
                     if(!results.containsKey(user_id)) {
@@ -82,6 +83,7 @@ public class PostRepositoryImpl implements PostRepository {
                     }
                     results.get(user_id).put(post_id,text);
                 }
+
             }
             return results;
         };
@@ -89,6 +91,49 @@ public class PostRepositoryImpl implements PostRepository {
             return dbUtils.doInTransaction(getPosts);
         }catch(Exception e){
             logger.error(e.getMessage());
+            throw new DatabaseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public void registerLink(int user, int post) {
+        DbUtils.ThrowingConsumer<Connection, Exception> insert_link = (conn) -> {
+            String query = "INSERT INTO links SELECT ?,? WHERE NOT EXISTS(SELECT * FROM links WHERE user_id=? AND post_id=?)";
+            try(PreparedStatement pst = conn.prepareStatement(query)){
+                pst.setInt(1,user);
+                pst.setInt(2,post);
+                pst.setInt(3,user);
+                pst.setInt(4,post);
+                pst.executeUpdate();
+            }
+        };
+        try{
+            dbUtils.doInTransaction(insert_link);
+            logger.info("Link info registered successfully");
+        }catch(Exception e){
+            logger.error("Could not save link info");
+            throw new DatabaseException(e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean checkLink(int user, int post) {
+        DbUtils.ThrowingFunction<Connection, Boolean, Exception> check_link = (conn) -> {
+            String query = "SELECT EXISTS(SELECT * FROM links WHERE user_id=? AND post_id=?)";
+            boolean exist;
+            try(PreparedStatement pst = conn.prepareStatement(query)){
+                pst.setInt(1,user);
+                pst.setInt(2,post);
+                ResultSet rs = pst.executeQuery();
+                rs.next();
+                exist = rs.getBoolean("exists");
+            }
+            return exist;
+        };
+        try{
+            return dbUtils.doInTransaction(check_link);
+        }catch(Exception e){
+            logger.error("Could not check link");
             throw new DatabaseException(e.getMessage());
         }
     }

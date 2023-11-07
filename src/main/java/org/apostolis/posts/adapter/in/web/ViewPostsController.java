@@ -7,6 +7,8 @@ import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
 import org.apostolis.posts.application.ports.in.PostViewsQuery;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ViewPostsController {
     private final PostViewsUseCase postViewsService;
@@ -27,10 +29,8 @@ public class ViewPostsController {
         }
         PostViewsQuery postViewsQuery = new PostViewsQuery(App.currentUserId.get(),pageNum,pageSize);
 
-        //HashMap<String, HashMap<Integer,String>> followingPosts = postViewsService.getFollowingPosts(postViewsQuery);
-
-        HashMap<String, Object> response = new HashMap<>();
-        //response.put("data",followingPosts);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data",postViewsService.getFollowingPosts(postViewsQuery));
         response.put("current_page",pageNum);
         response.put("page_size",pageSize);
         ctx.json(response);
@@ -51,11 +51,10 @@ public class ViewPostsController {
         OwnPostsWithNCommentsQuery viewQuery = new OwnPostsWithNCommentsQuery(
                 App.currentUserId.get(), commentsNum, pageNum, pageSize);
 
-
-        //HashMap<String, HashMap<Integer,String>> postsWithComments = postViewsService.getOwnPostsWithNLatestComments(viewQuery);
-
-        HashMap<String, Object> response = new HashMap<>();
-        //response.put("data",postsWithComments);
+        Map<String, Object> response = new HashMap<>();
+        Map<Integer,List<Object>> postsWithComments;
+        postsWithComments = postViewsService.getOwnPostsWithNLatestComments(viewQuery);
+        response.put("data",postsWithComments);
         response.put("current_page",pageNum);
         response.put("page_size",pageSize);
         ctx.json(response);

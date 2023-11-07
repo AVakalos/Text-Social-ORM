@@ -14,6 +14,7 @@ import org.apostolis.exception.AuthenticationException;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.exception.InvalidTokenException;
 import org.apostolis.posts.adapter.in.web.CreatePostController;
+import org.apostolis.posts.adapter.in.web.ManageLinkController;
 import org.apostolis.posts.adapter.in.web.ViewPostsController;
 import org.apostolis.posts.domain.PostCreationException;
 import org.apostolis.users.adapter.in.web.AccountController;
@@ -35,6 +36,7 @@ public class App
         CreateCommentController createCommentController = appConfig.getCreateCommentController();
         ViewPostsController viewPostsController = appConfig.getPostViewsController();
         ViewCommentsController viewCommentsController = appConfig.getViewCommentsController();
+        ManageLinkController manageLinkController = appConfig.getManageLinkController();
 
         int port = Integer.parseInt(AppConfig.readProperties().getProperty("port"));
 
@@ -67,7 +69,7 @@ public class App
         app.post("/api/newcomment",createCommentController::createComment);
         app.post("/api/follow", followsController::follow);
         app.delete("/api/unfollow", followsController::unfollow);
-//        app.get("/api/user/createurl/{post}",operationsController::createUrlForPostAndComments);
+        app.get("/api/user/createurl/{post}",manageLinkController::createLink);
 
         app.get("api/user/following/posts", viewPostsController::getFollowingPosts);
         app.get("api/user/posts", viewPostsController::getOwnPostsWithLatestNComments);
@@ -75,8 +77,8 @@ public class App
         app.get("api/user/posts/latestcomments",viewCommentsController::getLatestCommentsOnOwnOrFollowingPosts);
         app.get("api/user/followers",getFollowsController::getFollowers);
         app.get("api/user/tofollow",getFollowsController::getUsersToFollow);
-//
-//        app.get("<url>",operationsController::decodeLink);
+
+        app.get("<url>",manageLinkController::decodeLink);
 
 
         //PostRepositoryImpl postRepository = new PostRepositoryImpl(appConfig.getDbUtils(), followsRepository);

@@ -12,11 +12,14 @@ import org.apostolis.comments.application.service.CommentService;
 import org.apostolis.comments.application.service.CommentsViewService;
 import org.apostolis.common.DbUtils;
 import org.apostolis.posts.adapter.in.web.CreatePostController;
+import org.apostolis.posts.adapter.in.web.ManageLinkController;
 import org.apostolis.posts.adapter.in.web.ViewPostsController;
 import org.apostolis.posts.adapter.out.persistence.PostRepositoryImpl;
 import org.apostolis.posts.application.ports.in.CreatePostUseCase;
+import org.apostolis.posts.application.ports.in.ManageLinkUseCase;
 import org.apostolis.posts.application.ports.in.PostViewsUseCase;
 import org.apostolis.posts.application.ports.out.PostRepository;
+import org.apostolis.posts.application.service.LinkService;
 import org.apostolis.posts.application.service.PostService;
 import org.apostolis.posts.application.service.PostViewService;
 import org.apostolis.security.JjwtTokenManagerImpl;
@@ -51,6 +54,8 @@ public class AppConfig {
     private final CreateCommentController createCommentController;
     private final ViewPostsController viewPostsController;
     private final ViewCommentsController viewCommentsController;
+
+    private final ManageLinkController manageLinkController;
 
     private final DbUtils dbUtils;
 
@@ -96,7 +101,8 @@ public class AppConfig {
         CreatePostUseCase postService = new PostService(postRepository);
         CreateCommentUseCase commentService = new CommentService(commentRepository);
         PostViewsUseCase postViewsService = new PostViewService(postRepository, followsRepository, commentRepository);
-        CommentsViewsUseCase commentsViewService = new CommentsViewService(postRepository, followsRepository);
+        CommentsViewsUseCase commentsViewService = new CommentsViewService(commentRepository, postRepository, followsRepository);
+        ManageLinkUseCase linkService = new LinkService(postRepository,postViewsService);
 
 //        accountController = userControllers.getAccountController();
 //        followsController = userControllers.getFollowsController();
@@ -109,6 +115,7 @@ public class AppConfig {
         createCommentController = new CreateCommentController(commentService, tokenManager);
         viewPostsController = new ViewPostsController(postViewsService);
         viewCommentsController = new ViewCommentsController(commentsViewService);
+        manageLinkController = new ManageLinkController(linkService);
 
         if(mode.equals("production")){
             Properties appProps = readProperties();
@@ -198,7 +205,7 @@ public class AppConfig {
         return viewCommentsController;
     }
 
-    public DbUtils getDbUtils() {
-        return dbUtils;
+    public ManageLinkController getManageLinkController() {
+        return manageLinkController;
     }
 }
