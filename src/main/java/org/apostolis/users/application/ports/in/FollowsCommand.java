@@ -6,16 +6,15 @@ import org.apostolis.common.validation.SelfValidating;
 public record FollowsCommand(
 
         // User may be removed from command
-//        @NotNull
-//        @NotBlank
-//        String user,
+        @Positive
+        int user,
         @Positive
         int follows
 
 ) implements SelfValidating<FollowsCommand> {
 
-    public FollowsCommand(int follows){
-        //this.user = user;
+    public FollowsCommand(int user, int follows){
+        this.user = user;
         this.follows = follows;
         this.selfValidate();
     }

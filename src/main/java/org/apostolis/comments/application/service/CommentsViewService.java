@@ -12,7 +12,6 @@ public class CommentsViewService implements CommentsViewsUseCase {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-
     private final FollowsRepository followsRepository;
 
     public CommentsViewService(CommentRepository commentRepository, PostRepository postRepository, FollowsRepository followsRepository) {
@@ -48,6 +47,8 @@ public class CommentsViewService implements CommentsViewsUseCase {
 
     @Override
     public Map<Integer, HashMap<Integer,List<Object>>> getLatestCommentsOnOwnOrFollowingPosts(ViewCommentsQuery viewCommentsQuery) {
+
+        // {user_id(me or users i follow):{post_id:[post_text,{comments_id:comment_text,...}],...},...}
         Map<Integer, HashMap<Integer,List<Object>>> result = new LinkedHashMap<>();
         HashMap<Integer, String> following_users = followsRepository.getFollowing(viewCommentsQuery.user());
 
@@ -78,6 +79,7 @@ public class CommentsViewService implements CommentsViewsUseCase {
         }
 
         for(int user: user_ids){
+            // {post_id:[post_text,{comment_id: comment_text,...}],...}
             HashMap<Integer, List<Object>> posts_and_latest_comment = new LinkedHashMap<>();
 
             HashMap<Integer,String> user_posts = own_and_following_posts.get(user);

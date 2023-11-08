@@ -1,6 +1,5 @@
 package org.apostolis.posts.application.service;
 
-import org.apostolis.App;
 import org.apostolis.AppConfig;
 import org.apostolis.posts.application.ports.in.CreatePostCommand;
 import org.apostolis.posts.application.ports.in.CreatePostUseCase;
@@ -19,6 +18,7 @@ public class PostService implements CreatePostUseCase {
 
     @Override
     public void createPost(CreatePostCommand createPostCommand) {
+        int user = createPostCommand.user();
         String text = createPostCommand.text();
         Role role = Role.valueOf(createPostCommand.role());
 
@@ -41,7 +41,7 @@ public class PostService implements CreatePostUseCase {
             default:
                 break;
         }
-        Post postToSave = new Post(App.currentUserId.get(),text);
+        Post postToSave = new Post(user, text);
         postRepository.savePost(postToSave);
     }
 }

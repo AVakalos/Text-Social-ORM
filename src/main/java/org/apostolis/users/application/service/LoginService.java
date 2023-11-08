@@ -26,13 +26,11 @@ public class LoginService implements LoginUseCase {
         this.passwordEncoder = passwordEncoder;
     }
 
-    private boolean checkPassword(String username, String password){
+    private boolean checkPassword(String hashedPassword, String insertedPassword){
         try {
-            User user = repository.getByUsername(username);
-            String hashed_password = user.password();
-            return passwordEncoder.checkPassword(password, hashed_password);
+            return passwordEncoder.checkPassword(insertedPassword, hashedPassword);
         }catch (Exception e){
-            logger.error("Username: "+username+" not found in the database.");
+            logger.error("Check password: "+e.getMessage());
             return false;
         }
     }
@@ -42,7 +40,8 @@ public class LoginService implements LoginUseCase {
         String inserted_username = loginCommand.username();
         String inserted_password = loginCommand.password();
         User user = repository.getByUsername(inserted_username);
-        if(checkPassword(inserted_username,inserted_password)){
+
+        if(checkPassword(user.password(),inserted_password)){
             String token = tokenManager.issueToken(inserted_username, Role.valueOf(user.role()));
             logger.info("User logged in successfully");
             return token;

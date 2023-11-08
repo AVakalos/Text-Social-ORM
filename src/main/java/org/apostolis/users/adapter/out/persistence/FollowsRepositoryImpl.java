@@ -1,6 +1,5 @@
 package org.apostolis.users.adapter.out.persistence;
 
-import org.apostolis.App;
 import org.apostolis.common.DbUtils;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.users.application.ports.out.FollowsRepository;
@@ -22,11 +21,11 @@ public class FollowsRepositoryImpl implements FollowsRepository {
     }
 
     @Override
-    public void saveFollow(int user) throws IllegalArgumentException, DatabaseException{
+    public void saveFollow(int user, int user_to_follow) throws IllegalArgumentException, DatabaseException{
         DbUtils.ThrowingConsumer<Connection,Exception> saveFollowIntoDb = (conn) -> {
             try(PreparedStatement savefollow_stm = conn.prepareStatement("INSERT INTO followers VALUES (?,?)")){
-                savefollow_stm.setInt(1, App.currentUserId.get());
-                savefollow_stm.setInt(2, user);
+                savefollow_stm.setInt(1,user);
+                savefollow_stm.setInt(2, user_to_follow);
                 savefollow_stm.executeUpdate();
             }
         };
@@ -40,12 +39,12 @@ public class FollowsRepositoryImpl implements FollowsRepository {
     }
 
     @Override
-    public void deleteFollow(int user) throws IllegalArgumentException, DatabaseException {
+    public void deleteFollow(int user, int userToUnfollow) throws IllegalArgumentException, DatabaseException {
         DbUtils.ThrowingConsumer<Connection,Exception> deleteFollowerFromDb = (conn) -> {
             try(PreparedStatement delete_follower_stm = conn.prepareStatement(
                     "DELETE FROM followers WHERE user_id = ? AND following_id=?")){
-                delete_follower_stm.setInt(1,App.currentUserId.get());
-                delete_follower_stm.setInt(2,user);
+                delete_follower_stm.setInt(1,user);
+                delete_follower_stm.setInt(2,userToUnfollow);
                 int count = delete_follower_stm.executeUpdate();
                 if (count == 0){
                     logger.info("User didnt found");

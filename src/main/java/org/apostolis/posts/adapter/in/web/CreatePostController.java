@@ -1,6 +1,7 @@
 package org.apostolis.posts.adapter.in.web;
 
 import io.javalin.http.Context;
+import org.apostolis.App;
 import org.apostolis.posts.application.ports.in.CreatePostCommand;
 import org.apostolis.posts.application.ports.in.CreatePostUseCase;
 import org.apostolis.posts.domain.CreatePostRequest;
@@ -22,7 +23,7 @@ public class CreatePostController {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String authlevel = tokenManager.extractRole(token);
         CreatePostRequest request = ctx.bodyAsClass(CreatePostRequest.class);
-        CreatePostCommand createPostCommand = new CreatePostCommand(request.text(), authlevel);
+        CreatePostCommand createPostCommand = new CreatePostCommand(App.currentUserId.get(), request.text(), authlevel);
         postService.createPost(createPostCommand);
         ctx.result(tokenManager.extractUsername(token)+" did a new post.");
     }

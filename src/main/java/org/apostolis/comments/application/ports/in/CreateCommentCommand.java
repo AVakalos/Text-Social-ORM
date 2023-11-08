@@ -1,7 +1,5 @@
 package org.apostolis.comments.application.ports.in;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -9,8 +7,8 @@ import org.apostolis.common.validation.SelfValidating;
 import org.apostolis.common.validation.StringEnumeration;
 import org.apostolis.users.domain.Role;
 
-
 public record CreateCommentCommand(
+        int user,
         @Positive
         int post,
         @NotNull
@@ -21,8 +19,8 @@ public record CreateCommentCommand(
 
 ) implements SelfValidating<CreateCommentCommand> {
 
-    @JsonCreator
-    public CreateCommentCommand(@JsonProperty("post") int post, @JsonProperty("text") String text, @JsonProperty("role") String role){
+    public CreateCommentCommand(int user, int post, String text, String role){
+        this.user = user;
         this.post = post;
         this.text = text;
         this.role = role;

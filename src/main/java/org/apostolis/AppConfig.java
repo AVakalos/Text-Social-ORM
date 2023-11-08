@@ -54,11 +54,13 @@ public class AppConfig {
     private final CreateCommentController createCommentController;
     private final ViewPostsController viewPostsController;
     private final ViewCommentsController viewCommentsController;
-
     private final ManageLinkController manageLinkController;
 
     private final DbUtils dbUtils;
 
+    private final PasswordEncoder passwordEncoder;
+
+    private final TokenManager tokenManager;
 
     private static int FREE_POST_SIZE;
     private static int PREMIUM_POST_SIZE;
@@ -69,46 +71,47 @@ public class AppConfig {
     private static HikariDataSource ds;
 
     public static Clock clock = Clock.system(ZoneId.of("Europe/Athens"));
+    private final RegisterUseCase registerService;
+    private final LoginUseCase loginService;
+    private final FollowsUseCase followsService;
+    private final GetFollowersAndUsersToFollowUseCase getFollowsService;
+    private final CreatePostUseCase postService;
+    private final CreateCommentUseCase commentService;
+    private final PostViewsUseCase postViewsService;
+    private final CommentsViewsUseCase commentsViewService;
+    private final ManageLinkUseCase linkService;
+    private final UserRepository userRepository;
+    private final FollowsRepository followsRepository;
+    private final CommentRepository commentRepository;
+    private final PostRepository postRepository;
 
 
     public AppConfig(String mode){
         dbUtils = new DbUtils();
-        PasswordEncoder passwordEncoder = new PasswordEncoder();
-        TokenManager tokenManager = new JjwtTokenManagerImpl();
+        passwordEncoder = new PasswordEncoder();
+        tokenManager = new JjwtTokenManagerImpl();
 
-//        UserPersistenceInjector userPersistence = new UserPersistenceInjector(dbUtils);
-//        UserServicesInjector userServices = new UserServicesInjector(userPersistence.getUserRepository(),
-//                                                                     tokenManager,
-//                                                                     passwordEncoder,
-//                                                                     userPersistence.getFollowsRepository());
-//
-//        userControllers = new UserControllersInjector(userServices.getFollowsService(),
-//                                                                              userServices.getRegisterService(),
-//                                                                              userServices.getLoginService(),
-//                                                                              userServices.getGetFollowsService(),
-//                                                                              tokenManager);
-
-        UserRepository userRepository = new UserRepositoryImpl(dbUtils);
-        FollowsRepository followsRepository = new FollowsRepositoryImpl(dbUtils);
-        CommentRepository commentRepository = new CommentRepositoryImpl(dbUtils);
-        PostRepository postRepository = new PostRepositoryImpl(dbUtils);
+        userRepository = new UserRepositoryImpl(dbUtils);
+        followsRepository = new FollowsRepositoryImpl(dbUtils);
+        commentRepository = new CommentRepositoryImpl(dbUtils);
+        postRepository = new PostRepositoryImpl(dbUtils);
 
 
-        RegisterUseCase registerService = new RegisterService(userRepository, passwordEncoder);
-        LoginUseCase loginService = new LoginService(userRepository, tokenManager, passwordEncoder);
-        FollowsUseCase followsService = new FollowsService(followsRepository);
-        GetFollowersAndUsersToFollowUseCase getFollowsService = new GetFollowsService(followsRepository);
-        CreatePostUseCase postService = new PostService(postRepository);
-        CreateCommentUseCase commentService = new CommentService(commentRepository);
-        PostViewsUseCase postViewsService = new PostViewService(postRepository, followsRepository, commentRepository);
-        CommentsViewsUseCase commentsViewService = new CommentsViewService(commentRepository, postRepository, followsRepository);
-        ManageLinkUseCase linkService = new LinkService(postRepository,postViewsService);
+        registerService = new RegisterService(userRepository, passwordEncoder);
+        loginService = new LoginService(userRepository, tokenManager, passwordEncoder);
+        followsService = new FollowsService(followsRepository);
+        getFollowsService = new GetFollowsService(followsRepository);
+        postService = new PostService(postRepository);
+        commentService = new CommentService(commentRepository);
+        postViewsService = new PostViewService(postRepository, followsRepository, commentRepository);
+        commentsViewService = new CommentsViewService(commentRepository, postRepository, followsRepository);
+        linkService = new LinkService(postRepository, postViewsService);
 
 //        accountController = userControllers.getAccountController();
 //        followsController = userControllers.getFollowsController();
 //        getFollowsController = userControllers.getGetFollowsController();
 
-        accountController = new AccountController(registerService,loginService);
+        accountController = new AccountController(registerService, loginService);
         followsController = new FollowsController(followsService,tokenManager);
         getFollowsController = new GetFollowsController(getFollowsService,tokenManager);
         createPostController = new CreatePostController(postService, tokenManager);
@@ -131,19 +134,11 @@ public class AppConfig {
             config.setPassword(appProps.getProperty("databasePassword"));
             ds = new HikariDataSource(config);
 
-        } else if (mode.equals("test")) {
-            Properties appProps = readProperties();
 
+        } else if (mode.equals("test")) {
             FREE_POST_SIZE = 20;
             PREMIUM_POST_SIZE = 30;
             FREE_MAX_COMMENTS = 2;
-
-            HikariConfig config = new HikariConfig();
-            config.setJdbcUrl(appProps.getProperty("testDatabaseUrl"));
-            config.setUsername(appProps.getProperty("testDatabaseUsername"));
-            config.setPassword(appProps.getProperty("testDatabasePassword"));
-            ds = new HikariDataSource(config);
-
         }else{
             throw new RuntimeException("Specify mode 'production' or 'test' when initializing AppConfig");
         }
@@ -208,4 +203,57 @@ public class AppConfig {
     public ManageLinkController getManageLinkController() {
         return manageLinkController;
     }
+
+    public static void setHikariDataSource(HikariDataSource ds) {
+        AppConfig.ds = ds;
+    }
+
+    public DbUtils getDbUtils() {
+        return dbUtils;
+    }
+
+    public PasswordEncoder getPasswordEncoder() {
+        return passwordEncoder;
+    }
+
+    public TokenManager getTokenManager() {
+        return tokenManager;
+    }
+
+    public RegisterUseCase getRegisterService() {
+        return registerService;
+    }
+
+    public LoginUseCase getLoginService() {
+        return loginService;
+    }
+
+    public FollowsUseCase getFollowsService() {
+        return followsService;
+    }
+
+    public GetFollowersAndUsersToFollowUseCase getGetFollowsService() {
+        return getFollowsService;
+    }
+
+    public CreatePostUseCase getPostService() {
+        return postService;
+    }
+
+    public CreateCommentUseCase getCommentService() {
+        return commentService;
+    }
+
+    public PostViewsUseCase getPostViewsService() {
+        return postViewsService;
+    }
+
+    public CommentsViewsUseCase getCommentsViewService() {
+        return commentsViewService;
+    }
+
+    public ManageLinkUseCase getLinkService() {
+        return linkService;
+    }
+
 }

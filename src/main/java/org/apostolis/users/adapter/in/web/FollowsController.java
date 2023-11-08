@@ -1,6 +1,7 @@
 package org.apostolis.users.adapter.in.web;
 
 import io.javalin.http.BadRequestResponse;
+import org.apostolis.App;
 import org.apostolis.security.TokenManager;
 import org.apostolis.users.application.ports.in.FollowsCommand;
 import org.apostolis.users.application.ports.in.FollowsUseCase;
@@ -28,7 +29,7 @@ public class FollowsController{
         }catch(Exception k){
             throw new BadRequestResponse("follows query parameter must be an integer");
         }
-        FollowsCommand followsCommand = new FollowsCommand(follows);
+        FollowsCommand followsCommand = new FollowsCommand(App.currentUserId.get(),follows);
         followsUseCase.followUser(followsCommand);
         ctx.result("User: "+user+ " followed user: "+follows);
     }
@@ -42,7 +43,7 @@ public class FollowsController{
         }catch(Exception k){
             throw new BadRequestResponse("unfollows query parameter must be an integer");
         }
-        FollowsCommand followsCommand = new FollowsCommand(unfollows);
+        FollowsCommand followsCommand = new FollowsCommand(App.currentUserId.get(),unfollows);
         followsUseCase.unfollowUser(followsCommand);
         ctx.result("User: "+user+ " unfollowed user: "+unfollows);
     }
