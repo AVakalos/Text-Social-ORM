@@ -9,5 +9,4 @@ public interface CommentRepository {
     void saveComment(Comment commentToSave);
     int getCountOfUserCommentsUnderThisPost(int user, int post);
     HashMap<Integer, HashMap<Integer,String>> getCommentsGivenPostIds(ArrayList<Integer> post_ids, int pageNum, int pageSize);
-    //HashMap<Integer, String> getLatestCommentsGivenPostIds(ArrayList<Integer> post_ids);
 }

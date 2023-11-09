@@ -115,48 +115,4 @@ public class CommentRepositoryImpl implements CommentRepository {
             throw new DatabaseException(e.getMessage());
         }
     }
-
-
-//    @Override
-//    public HashMap<Integer, String> getLatestCommentsGivenPostIds(ArrayList<Integer> post_ids) {
-//        DbUtils.ThrowingFunction<Connection, HashMap<Integer,String>, Exception> getComments = (conn)->{
-//            StringBuilder query = new StringBuilder(
-//                    "WITH numbered_comments AS (\n" +
-//                    "    SELECT *, row_number() over (\n" +
-//                    "                 PARTITION BY post_id\n" +
-//                    "                 order by created DESC\n" +
-//                    "                 ) AS row_number\n" +
-//                    "    FROM comments\n" +
-//                    "    ),\n" +
-//                    "    last_comments AS (\n" +
-//                    "        SELECT *\n" +
-//                    "        FROM numbered_comments\n" +
-//                    "        WHERE numbered_comments.row_number = 1\n" +
-//                    "    )\n" +
-//                    "SELECT comment_id, post_id, text, created\n" +
-//                    "FROM last_comments WHERE post_id IN(");
-//            for(int id: post_ids){
-//                query.append(id).append(",");
-//            }
-//            query.setCharAt(query.lastIndexOf(","),')');
-//            HashMap<Integer,String> results = new HashMap<>();
-//            try(PreparedStatement stm = conn.prepareStatement(query.toString())){
-//                ResultSet rs = stm.executeQuery();
-//                while(rs.next()){
-//                    int id = rs.getInt("post_id");
-//                    String text = rs.getString("text");
-//                    results.put(id, text);
-//                }
-//            }
-//            return results;
-//        };
-//        try{
-//            return dbUtils.doInTransaction(getComments);
-//        }catch(Exception e){
-//            logger.error(e.getMessage());
-//            throw new DatabaseException(e.getMessage());
-//        }
-//    }
-
-
 }
