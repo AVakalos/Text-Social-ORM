@@ -27,8 +27,8 @@ public class RegisterService implements RegisterUseCase {
             logger.warn("Username is already taken.");
             throw new IllegalArgumentException("Username is already taken.");
         }
-        User user = new User(command.username(), command.password(), command.role());
-        repository.save(user, passwordEncoder);
+        User user = new User(command.username(), passwordEncoder.encodePassword(command.password()), command.role());
+        repository.save(user);
         logger.info("User registered successfully");
     }
 }

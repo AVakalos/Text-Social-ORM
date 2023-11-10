@@ -208,6 +208,10 @@ public class AppConfig {
         AppConfig.ds = ds;
     }
 
+    public static HikariDataSource getDs() {
+        return ds;
+    }
+
     public DbUtils getDbUtils() {
         return dbUtils;
     }

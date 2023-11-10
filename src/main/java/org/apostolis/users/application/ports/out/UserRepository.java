@@ -6,7 +6,7 @@ import org.apostolis.users.application.ports.in.RegisterCommand;
 import org.apostolis.users.domain.User;
 
 public interface UserRepository {
-    void save(User user, PasswordEncoder passwordEncoder);
+    void save(User user);
     User getByUsername(String username) throws DatabaseException;
     int getUserIdFromUsername(String username);
     String getUsernameFromId(int userId);
