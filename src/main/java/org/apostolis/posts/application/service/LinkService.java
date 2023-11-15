@@ -35,7 +35,6 @@ public class LinkService implements ManageLinkUseCase {
         Set<Integer> user_post_ids = postRepository.getPostsGivenUsersIds(
                 currentUser,0,Integer.MAX_VALUE).get(user).keySet();
 
-        System.out.println(user_post_ids);
 
         if(!user_post_ids.contains(post)){
             throw new IllegalArgumentException("You cannot create shareable link for a post of another user");

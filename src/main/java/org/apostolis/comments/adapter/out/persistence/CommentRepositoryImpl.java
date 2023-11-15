@@ -4,7 +4,11 @@ import org.apostolis.comments.application.ports.out.CommentRepository;
 import org.apostolis.comments.domain.Comment;
 import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.common.DbUtils;
+import org.apostolis.common.HibernateUtil;
 import org.apostolis.exception.DatabaseException;
+import org.apostolis.posts.adapter.out.persistence.PostEntity;
+import org.apostolis.users.adapter.out.persistence.UserEntity;
+import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,23 +32,29 @@ public class CommentRepositoryImpl implements CommentRepository {
 
     @Override
     public void saveComment(Comment commentToSave) {
-        DbUtils.ThrowingConsumer<Connection,Exception> saveCommentIntoDb = (conn) -> {
-            try(PreparedStatement savecomment_stm = conn.prepareStatement(
-                    "INSERT INTO comments (post_id, user_id, text, created) VALUES (?,?,?,?)")){
-                savecomment_stm.setInt(1,commentToSave.post());
-                savecomment_stm.setInt(2,commentToSave.user());
-                savecomment_stm.setString(3, commentToSave.text());
-                savecomment_stm.setTimestamp(4, Timestamp.valueOf(commentToSave.createdAt()));
-                savecomment_stm.executeUpdate();
-            }
-        };
-        try{
-            dbUtils.doInTransaction(saveCommentIntoDb);
-            logger.info("Comment saved successfully in the database.");
-        }catch (Exception e){
-            logger.error("Comment didn't saved.");
-            throw new CommentCreationException("Comment didn't saved. May post id is invalid.");
-        }
+//        DbUtils.ThrowingConsumer<Connection,Exception> saveCommentIntoDb = (conn) -> {
+//            try(PreparedStatement savecomment_stm = conn.prepareStatement(
+//                    "INSERT INTO comments (post_id, user_id, text, created) VALUES (?,?,?,?)")){
+//                savecomment_stm.setInt(1,commentToSave.post());
+//                savecomment_stm.setInt(2,commentToSave.user());
+//                savecomment_stm.setString(3, commentToSave.text());
+//                savecomment_stm.setTimestamp(4, Timestamp.valueOf(commentToSave.createdAt()));
+//                savecomment_stm.executeUpdate();
+//            }
+//        };
+//        try{
+//            dbUtils.doInTransaction(saveCommentIntoDb);
+//            logger.info("Comment saved successfully in the database.");
+//        }catch (Exception e){
+//            logger.error("Comment didn't saved.");
+//            throw new CommentCreationException("Comment didn't saved. May post id is invalid.");
+//        }
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        sessionFactory.inTransaction((session -> {
+            UserEntity commentCreator = session.getReference(UserEntity.class, commentToSave.user());
+            PostEntity post = session.getReference(PostEntity.class, commentToSave.post());
+            session.persist(new CommentEntity(post,commentCreator, commentToSave.text(), commentToSave.createdAt()));
+        }));
     }
 
     @Override

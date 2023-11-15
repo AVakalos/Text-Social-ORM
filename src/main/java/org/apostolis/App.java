@@ -10,6 +10,7 @@ import jakarta.validation.ConstraintViolationException;
 import org.apostolis.comments.adapter.in.web.CreateCommentController;
 import org.apostolis.comments.adapter.in.web.ViewCommentsController;
 import org.apostolis.comments.domain.CommentCreationException;
+import org.apostolis.common.HibernateUtil;
 import org.apostolis.exception.AuthenticationException;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.exception.InvalidTokenException;
@@ -28,6 +29,7 @@ public class App
     public static void main( String[] args )
     {
         AppConfig appConfig = new AppConfig("production");
+        HibernateUtil.initializeSessionFactory();
 
         AccountController accountController = appConfig.getUserController();
         FollowsController followsController = appConfig.getFollowsController();
