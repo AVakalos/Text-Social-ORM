@@ -4,6 +4,7 @@ import org.apostolis.common.DbUtils;
 import org.apostolis.common.HibernateUtil;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.users.application.ports.out.FollowsRepository;
+import org.hibernate.ObjectNotFoundException;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +14,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 public class FollowsRepositoryImpl implements FollowsRepository {
 
@@ -25,25 +28,13 @@ public class FollowsRepositoryImpl implements FollowsRepository {
 
     @Override
     public void saveFollow(int user, int user_to_follow) throws IllegalArgumentException, DatabaseException{
-//        DbUtils.ThrowingConsumer<Connection,Exception> saveFollowIntoDb = (conn) -> {
-//            try(PreparedStatement savefollow_stm = conn.prepareStatement("INSERT INTO followers VALUES (?,?)")){
-//                savefollow_stm.setInt(1,user);
-//                savefollow_stm.setInt(2, user_to_follow);
-//                savefollow_stm.executeUpdate();
-//            }
-//        };
-//        try{
-//            dbUtils.doInTransaction(saveFollowIntoDb);
-//            logger.info("Follow saved successfully in the database.");
-//        }catch (Exception e){
-//            logger.error("Follow didn't saved.");
-//            throw new DatabaseException("You already follow this user or the user does not exist",e);
-//        }
-
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
         sessionFactory.inTransaction(session -> {
-            UserEntity current_user = session.getReference(UserEntity.class,user);
-            UserEntity following_user = session.getReference(UserEntity.class,user_to_follow);
+            UserEntity current_user = session.get(UserEntity.class,user);
+            UserEntity following_user = session.get(UserEntity.class,user_to_follow);
+            if(following_user == null){
+                throw new IllegalArgumentException("You already follow this user or the user does not exist");
+            }
             current_user.addFollowing(following_user);
             following_user.addFollower(current_user);
             session.merge(current_user);
@@ -53,34 +44,13 @@ public class FollowsRepositoryImpl implements FollowsRepository {
 
     @Override
     public void deleteFollow(int user, int userToUnfollow) throws IllegalArgumentException, DatabaseException {
-//        DbUtils.ThrowingConsumer<Connection,Exception> deleteFollowerFromDb = (conn) -> {
-//            try(PreparedStatement delete_follower_stm = conn.prepareStatement(
-//                    "DELETE FROM followers WHERE user_id = ? AND following_id=?")){
-//                delete_follower_stm.setInt(1,user);
-//                delete_follower_stm.setInt(2,userToUnfollow);
-//                int count = delete_follower_stm.executeUpdate();
-//                if (count == 0){
-//                    logger.info("User didnt found");
-//                    throw new IllegalArgumentException("You were not following this user or user does not exist");
-//                }
-//            }
-//        };
-//        try{
-//            dbUtils.doInTransaction(deleteFollowerFromDb);
-//            logger.info("Follow deleted successfully from database.");
-//        }catch (Exception e){
-//            logger.error("Follow didn't deleted.");
-//            logger.error(e.getMessage());
-//            if (e instanceof IllegalArgumentException){
-//                throw new DatabaseException(e.getMessage());
-//            }else {
-//                throw new DatabaseException("Follow didn't deleted", e);
-//            }
-//        }
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
         sessionFactory.inTransaction(session -> {
-            UserEntity current_user = session.getReference(UserEntity.class,user);
-            UserEntity following_user = session.getReference(UserEntity.class,userToUnfollow);
+            UserEntity current_user = session.get(UserEntity.class, user);
+            UserEntity following_user = session.get(UserEntity.class, userToUnfollow);
+            if(following_user == null){
+                throw new IllegalArgumentException("You were not following this user or user does not exist");
+            }
             current_user.removeFollowing(following_user);
             following_user.removeFollower(current_user);
             session.merge(current_user);

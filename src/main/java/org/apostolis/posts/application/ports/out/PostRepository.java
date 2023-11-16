@@ -10,6 +10,6 @@ import java.util.Optional;
 public interface PostRepository {
     void savePost(Post postToSave);
     HashMap<Integer,HashMap<Integer,String>> getPostsGivenUsersIds(ArrayList<Integer> user_ids, int pageNum, int pageSize);
-    void registerLink(int user, int post);
+    void registerLink(int post);
     boolean checkLink(int user, int post);
 }

@@ -1,5 +1,6 @@
 package org.apostolis.posts.adapter.in.web;
 
+import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import io.javalin.http.NotFoundResponse;
 import org.apostolis.App;
@@ -18,7 +19,12 @@ public class ManageLinkController {
     }
 
     public void createLink(Context ctx){
-        int post = ctx.pathParamAsClass("post", Integer.class).get();
+        int post;
+        try {
+            post = ctx.pathParamAsClass("post", Integer.class).get();
+        }catch(Exception k){
+            throw new BadRequestResponse("post parameter must be an integer");
+        }
         CreateLinkCommand createLinkCommand = new CreateLinkCommand(App.currentUserId.get(),post);
         String generated_url = linkService.createLink(createLinkCommand);
         ctx.result(generated_url);

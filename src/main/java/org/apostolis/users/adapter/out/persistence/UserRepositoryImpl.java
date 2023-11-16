@@ -25,23 +25,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void save(User user) {
-//        DbUtils.ThrowingConsumer<Connection,Exception> insertUserIntoDb = (conn) -> {
-//            try(PreparedStatement insert_stm = conn.prepareStatement(
-//                    "INSERT INTO Users (username,password,role) VALUES(?,?,?)")){
-//                insert_stm.setString(1, user.username());
-//                insert_stm.setString(2, passwordEncoder.encodePassword(user.password()));
-//                insert_stm.setString(3, user.role());
-//                insert_stm.executeUpdate();
-//            }
-//        };
-//        try{
-//            dbUtils.doInTransaction(insertUserIntoDb);
-//            logger.info("User saved successfully in the database.");
-//        }catch (Exception e){
-//            logger.error("User didn't saved.");
-//            throw new DatabaseException("User didn't saved",e);
-//        }
-
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
         sessionFactory.inTransaction(session -> {
             session.persist(new UserEntity(user.username(),user.password(),user.role()));

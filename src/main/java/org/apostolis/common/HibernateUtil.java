@@ -6,7 +6,6 @@ import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.apostolis.AppConfig;
 import org.apostolis.comments.adapter.out.persistence.CommentEntity;
-import org.apostolis.comments.domain.Comment;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.hibernate.SessionFactory;

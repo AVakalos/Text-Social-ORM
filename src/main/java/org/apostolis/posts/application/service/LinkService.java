@@ -1,7 +1,5 @@
 package org.apostolis.posts.application.service;
 
-import io.javalin.http.BadRequestResponse;
-import org.apostolis.App;
 import org.apostolis.AppConfig;
 import org.apostolis.posts.application.ports.in.CreateLinkCommand;
 import org.apostolis.posts.application.ports.in.ManageLinkUseCase;
@@ -35,13 +33,14 @@ public class LinkService implements ManageLinkUseCase {
         Set<Integer> user_post_ids = postRepository.getPostsGivenUsersIds(
                 currentUser,0,Integer.MAX_VALUE).get(user).keySet();
 
+//        if(!user_post_ids.contains(post)){
+//            throw new IllegalArgumentException("You cannot create shareable link for a post of another user");
+//        }
 
-        if(!user_post_ids.contains(post)){
-            throw new IllegalArgumentException("You cannot create shareable link for a post of another user");
-        }
+
 
         // register the link to prevent data leaks via url manipulation
-        postRepository.registerLink(user, post);
+        postRepository.registerLink(post);
         String description = user+","+post;
 
         String host = AppConfig.readProperties().getProperty("host");
