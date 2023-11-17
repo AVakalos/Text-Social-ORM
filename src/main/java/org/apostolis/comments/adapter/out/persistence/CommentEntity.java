@@ -2,6 +2,7 @@ package org.apostolis.comments.adapter.out.persistence;
 
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
@@ -18,7 +19,7 @@ public class CommentEntity {
     int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="post_id", nullable = false)
+    @JoinColumn(name="post_id")
     PostEntity post;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -36,5 +37,9 @@ public class CommentEntity {
         this.commentCreator = commentCreator;
         this.text = text;
         this.createdAt = createdAt;
+    }
+
+    public void setPost(PostEntity post){
+        this.post = post;
     }
 }

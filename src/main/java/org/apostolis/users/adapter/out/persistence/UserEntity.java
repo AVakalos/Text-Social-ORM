@@ -1,8 +1,10 @@
 package org.apostolis.users.adapter.out.persistence;
 
 import jakarta.persistence.*;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -38,6 +40,10 @@ public class UserEntity {
     @Fetch(FetchMode.SUBSELECT)
     private Set<UserEntity> followers = new HashSet<>();
 
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<PostEntity> user_posts = new HashSet<>();
+
 
     public UserEntity(String username, String password, String role) {
         this.username = username;
@@ -51,6 +57,7 @@ public class UserEntity {
         if(!existed){
             throw new IllegalArgumentException("You already follow this user");
         }
+        to_follow.followers.add(this);
     }
 
     public void removeFollowing(UserEntity to_unfollow){
@@ -58,14 +65,19 @@ public class UserEntity {
         if(!existed){
             throw new IllegalArgumentException("You were not following this user or user does not exist");
         }
+        to_unfollow.followers.remove(this);
     }
 
-    public void addFollower(UserEntity follower){
-        followers.add(follower);
+
+
+    public void addPost(PostEntity post){
+        user_posts.add(post);
+        post.setUser(this);
     }
 
-    public void removeFollower(UserEntity follower){
-        followers.remove(follower);
+    public void removePost(PostEntity post){
+        user_posts.remove(post);
+        post.setUser(null);
     }
 
 }

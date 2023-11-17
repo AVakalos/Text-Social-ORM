@@ -6,6 +6,7 @@ import org.apostolis.posts.application.ports.in.ManageLinkUseCase;
 import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
 import org.apostolis.posts.application.ports.in.PostViewsUseCase;
 import org.apostolis.posts.application.ports.out.PostRepository;
+import org.apostolis.users.adapter.out.persistence.UserEntity;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -34,13 +35,17 @@ public class LinkService implements ManageLinkUseCase {
                 currentUser,0,Integer.MAX_VALUE).get(user).keySet();
 
 //        if(!user_post_ids.contains(post)){
-//            throw new IllegalArgumentException("You cannot create shareable link for a post of another user");
+//
 //        }
+        if(postRepository.isMyPost(user, post)){
+            // register the link to prevent data leaks via url manipulation
+            postRepository.registerLink(post);
+        }else{
+            throw new IllegalArgumentException("You cannot create shareable link for a post of another user");
+        }
 
 
 
-        // register the link to prevent data leaks via url manipulation
-        postRepository.registerLink(post);
         String description = user+","+post;
 
         String host = AppConfig.readProperties().getProperty("host");

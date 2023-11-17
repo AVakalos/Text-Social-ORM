@@ -12,4 +12,5 @@ public interface PostRepository {
     HashMap<Integer,HashMap<Integer,String>> getPostsGivenUsersIds(ArrayList<Integer> user_ids, int pageNum, int pageSize);
     void registerLink(int post);
     boolean checkLink(int user, int post);
+    boolean isMyPost(int user, int post);
 }

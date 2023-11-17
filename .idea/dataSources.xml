@@ -8,7 +8,7 @@
       <jdbc-url>jdbc:postgresql://localhost:5433/TextSocial</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="TextSocialORM@localhost" uuid="22c39764-8b88-4195-8e9f-2794260de4ff">
+    <data-source source="LOCAL" name="TextSocialORM@localhost" uuid="53f7686b-85c5-4328-b2e8-c31c6ed72712">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>

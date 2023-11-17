@@ -9,6 +9,7 @@ import org.apostolis.posts.domain.Post;
 import org.apostolis.posts.domain.PostCreationException;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.apostolis.users.application.ports.out.FollowsRepository;
+import org.apostolis.users.domain.User;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,6 @@ import java.util.*;
 public class PostRepositoryImpl implements PostRepository {
 
     private final DbUtils dbUtils;
-
 
     private static final Logger logger = LoggerFactory.getLogger(PostRepositoryImpl.class);
 
@@ -87,11 +87,15 @@ public class PostRepositoryImpl implements PostRepository {
         }
     }
 
+
+
+
+
     @Override
     public void registerLink(int post) {
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
         sessionFactory.inTransaction(session -> {
-            PostEntity sharedPost = session.get(PostEntity.class, post);
+            PostEntity sharedPost = session.getReference(PostEntity.class, post);
             sharedPost.setShared();
             session.merge(sharedPost);
         });
@@ -118,5 +122,23 @@ public class PostRepositoryImpl implements PostRepository {
             logger.error("Could not check link");
             throw new DatabaseException(e.getMessage());
         }
+    }
+
+    //TODO: implement properly
+    @Override
+    public boolean isMyPost(int user, int post) {
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+
+        sessionFactory.inTransaction(session -> {
+            UserEntity userEntity = session.get(UserEntity.class, user);
+            PostEntity sharedPost = session.getReference(PostEntity.class, post);
+            Set<PostEntity> user_posts = userEntity.getUser_posts();
+            if(user_posts.contains(sharedPost)){
+                System.out.println("It's my post!");
+            }else{
+                System.out.println("Another's post");
+            }
+        });
+        return false;
     }
 }

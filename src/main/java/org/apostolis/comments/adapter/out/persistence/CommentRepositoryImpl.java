@@ -36,7 +36,7 @@ public class CommentRepositoryImpl implements CommentRepository {
         sessionFactory.inTransaction((session -> {
             UserEntity commentCreator = session.getReference(UserEntity.class, commentToSave.user());
             PostEntity post = session.getReference(PostEntity.class, commentToSave.post());
-            session.persist(new CommentEntity(post,commentCreator, commentToSave.text(), commentToSave.createdAt()));
+            session.persist(new CommentEntity(post, commentCreator, commentToSave.text(), commentToSave.createdAt()));
         }));
     }
 

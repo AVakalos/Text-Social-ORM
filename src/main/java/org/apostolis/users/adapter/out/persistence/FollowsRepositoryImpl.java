@@ -36,9 +36,7 @@ public class FollowsRepositoryImpl implements FollowsRepository {
                 throw new IllegalArgumentException("You already follow this user or the user does not exist");
             }
             current_user.addFollowing(following_user);
-            following_user.addFollower(current_user);
             session.merge(current_user);
-            session.merge(following_user);
         });
     }
 
@@ -52,9 +50,7 @@ public class FollowsRepositoryImpl implements FollowsRepository {
                 throw new IllegalArgumentException("You were not following this user or user does not exist");
             }
             current_user.removeFollowing(following_user);
-            following_user.removeFollower(current_user);
             session.merge(current_user);
-            session.merge(following_user);
         });
     }
 
