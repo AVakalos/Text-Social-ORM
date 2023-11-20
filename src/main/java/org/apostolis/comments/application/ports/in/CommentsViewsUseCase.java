@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 public interface CommentsViewsUseCase {
-    Map<Integer, List<Object>> getCommentsOnOwnPosts(ViewCommentsQuery viewCommentsQuery);
-    Map<Integer, HashMap<Integer,List<Object>>> getLatestCommentsOnOwnOrFollowingPosts(ViewCommentsQuery viewCommentsQuery);
+    Map<Long, List<Object>> getCommentsOnOwnPosts(ViewCommentsQuery viewCommentsQuery);
+    Map<Long, HashMap<Long,List<Object>>> getLatestCommentsOnOwnOrFollowingPosts(ViewCommentsQuery viewCommentsQuery);
 }

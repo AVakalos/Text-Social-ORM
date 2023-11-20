@@ -40,51 +40,78 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public HashMap<Integer, HashMap<Integer,String>> getPostsGivenUsersIds(ArrayList<Integer> user_ids, int pageNum, int pageSize) {
-        DbUtils.ThrowingFunction<Connection, HashMap<Integer,HashMap<Integer,String>>, Exception> getPosts = (conn) -> {
+    public HashMap<Long, HashMap<Long,String>> getPostsGivenUsersIds(ArrayList<Long> user_ids, int pageNum, int pageSize) {
+//        DbUtils.ThrowingFunction<Connection, HashMap<Long,HashMap<Long,String>>, Exception> getPosts = (conn) -> {
+//
+//            StringBuilder query = new StringBuilder("""
+//                    WITH numbered_posts AS(
+//                        SELECT *, row_number() over (
+//                            partition by user_id
+//                            ORDER BY createdat DESC
+//                        ) AS row_number
+//                    FROM posts)
+//                    SELECT * FROM numbered_posts
+//                    WHERE user_id IN(""");
+//            for(long id: user_ids){
+//                query.append(id).append(",");
+//            }
+//            query.setCharAt(query.lastIndexOf(","),')');
+//            query.append(" AND row_number > ? and row_number <= ?");
+//
+//
+//            HashMap<Long,HashMap<Long,String>> results = new LinkedHashMap<>();
+//            try(PreparedStatement stm = conn.prepareStatement(query.toString())){
+//                stm.setInt(1,pageNum*pageSize);
+//                stm.setInt(2, pageSize*(pageNum+1));
+//
+//                ResultSet rs = stm.executeQuery();
+//                while(rs.next()){
+//                    long user_id = rs.getInt("user_id");
+//
+//                    long post_id = rs.getInt("post_id");
+//                    String text = rs.getString("text");
+//                    if(!results.containsKey(user_id)) {
+//                        results.put(user_id, new LinkedHashMap<>());
+//                    }
+//                    results.get(user_id).put(post_id,text);
+//                }
+//
+//            }
+//            return results;
+//        };
+//        try{
+//            return dbUtils.doInTransaction(getPosts);
+//        }catch(Exception e){
+//            logger.error(e.getMessage());
+//            throw new DatabaseException(e.getMessage());
+//        }
 
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        return sessionFactory.fromTransaction(session -> {
             StringBuilder query = new StringBuilder("""
-                    WITH numbered_posts AS(
-                        SELECT *, row_number() over (
-                            partition by user_id
-                            ORDER BY createdat DESC
-                        ) AS row_number
-                    FROM posts)
-                    SELECT * FROM numbered_posts
-                    WHERE user_id IN(""");
-            for(int id: user_ids){
-                query.append(id).append(",");
-            }
-            query.setCharAt(query.lastIndexOf(","),')');
-            query.append(" AND row_number > ? and row_number <= ?");
+                with
+                    numbered_posts as(
+                        select *,row_number()\s
+                            over (partition by user.user_id\s
+                                  order by createdAt desc)
+                            as row_number
+                        from PostEntity
+                    ) 
+                select * from numbered_posts
+                where user_id IN(:user_ids)""");
 
+            List<Object[]> query_results = session.createSelectionQuery(query.toString(), Object[].class)
+                    .setParameter("user_ids",user_ids)
+                    .setFirstResult(0)
+                    .setMaxResults(pageSize)
+                    .getResultList();
 
-            HashMap<Integer,HashMap<Integer,String>> results = new LinkedHashMap<>();
-            try(PreparedStatement stm = conn.prepareStatement(query.toString())){
-                stm.setInt(1,pageNum*pageSize);
-                stm.setInt(2, pageSize*(pageNum+1));
+            HashMap<Long,HashMap<Long,String>> results = new LinkedHashMap<>();
 
-                ResultSet rs = stm.executeQuery();
-                while(rs.next()){
-                    int user_id = rs.getInt("user_id");
-
-                    int post_id = rs.getInt("post_id");
-                    String text = rs.getString("text");
-                    if(!results.containsKey(user_id)) {
-                        results.put(user_id, new LinkedHashMap<>());
-                    }
-                    results.get(user_id).put(post_id,text);
-                }
-
-            }
             return results;
-        };
-        try{
-            return dbUtils.doInTransaction(getPosts);
-        }catch(Exception e){
-            logger.error(e.getMessage());
-            throw new DatabaseException(e.getMessage());
-        }
+        });
+
+
     }
 
 
@@ -92,7 +119,7 @@ public class PostRepositoryImpl implements PostRepository {
 
 
     @Override
-    public void registerLink(int post) {
+    public void registerLink(long post) {
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
         sessionFactory.inTransaction(session -> {
             PostEntity sharedPost = session.getReference(PostEntity.class, post);
@@ -103,42 +130,22 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public boolean checkLink(int user, int post) {
-        DbUtils.ThrowingFunction<Connection, Boolean, Exception> check_link = (conn) -> {
-            String query = "SELECT EXISTS(SELECT * FROM links WHERE user_id=? AND post_id=?)";
-            boolean exist;
-            try(PreparedStatement pst = conn.prepareStatement(query)){
-                pst.setInt(1,user);
-                pst.setInt(2,post);
-                ResultSet rs = pst.executeQuery();
-                rs.next();
-                exist = rs.getBoolean("exists");
-            }
-            return exist;
-        };
-        try{
-            return dbUtils.doInTransaction(check_link);
-        }catch(Exception e){
-            logger.error("Could not check link");
-            throw new DatabaseException(e.getMessage());
-        }
+    public boolean checkLink(long post) {
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        return sessionFactory.fromTransaction(session -> {
+            PostEntity linkPost = session.get(PostEntity.class, post);
+            return linkPost.isShared;
+        });
+
     }
 
-    //TODO: implement properly
     @Override
-    public boolean isMyPost(int user, int post) {
+    public boolean isMyPost(long user, long post) {
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-
-        sessionFactory.inTransaction(session -> {
+        return sessionFactory.fromTransaction(session -> {
             UserEntity userEntity = session.get(UserEntity.class, user);
             PostEntity sharedPost = session.getReference(PostEntity.class, post);
-            Set<PostEntity> user_posts = userEntity.getUser_posts();
-            if(user_posts.contains(sharedPost)){
-                System.out.println("It's my post!");
-            }else{
-                System.out.println("Another's post");
-            }
+            return userEntity.getUser_posts().contains(sharedPost);
         });
-        return false;
     }
 }

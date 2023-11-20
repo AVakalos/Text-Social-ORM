@@ -7,13 +7,13 @@ public record FollowsCommand(
 
         // User may be removed from command
         @Positive
-        int user,
+        long user,
         @Positive
-        int follows
+        long follows
 
 ) implements SelfValidating<FollowsCommand> {
 
-    public FollowsCommand(int user, int follows){
+    public FollowsCommand(long user, long follows){
         this.user = user;
         this.follows = follows;
         this.selfValidate();

@@ -27,25 +27,19 @@ public class LinkService implements ManageLinkUseCase {
 
     @Override
     public String createLink(CreateLinkCommand createLinkCommand) {
-        int user = createLinkCommand.user();
-        int post = createLinkCommand.post_id();
+        long user = createLinkCommand.user();
+        long post = createLinkCommand.post_id();
 
-        ArrayList<Integer> currentUser = new ArrayList<>(List.of(createLinkCommand.user()));
-        Set<Integer> user_post_ids = postRepository.getPostsGivenUsersIds(
-                currentUser,0,Integer.MAX_VALUE).get(user).keySet();
+//        ArrayList<Integer> currentUser = new ArrayList<>(List.of(createLinkCommand.user()));
+//        Set<Integer> user_post_ids = postRepository.getPostsGivenUsersIds(
+//                currentUser,0,Integer.MAX_VALUE).get(user).keySet();
 
-//        if(!user_post_ids.contains(post)){
-//
-//        }
         if(postRepository.isMyPost(user, post)){
             // register the link to prevent data leaks via url manipulation
             postRepository.registerLink(post);
         }else{
             throw new IllegalArgumentException("You cannot create shareable link for a post of another user");
         }
-
-
-
         String description = user+","+post;
 
         String host = AppConfig.readProperties().getProperty("host");
@@ -64,8 +58,8 @@ public class LinkService implements ManageLinkUseCase {
         String[] splitted =  decoded.split(",");
         int user_id = Integer.parseInt(splitted[0]);
         int post_id = Integer.parseInt(splitted[1]);
-        if(postRepository.checkLink(user_id, post_id)){
-
+        if(postRepository.checkLink(post_id)){
+            System.out.println("SHARED");
             OwnPostsWithNCommentsQuery query = new OwnPostsWithNCommentsQuery(
                     user_id,100,0,Integer.MAX_VALUE);
 

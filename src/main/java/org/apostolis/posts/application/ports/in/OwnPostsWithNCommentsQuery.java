@@ -5,7 +5,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 import org.apostolis.common.validation.SelfValidating;
 
 public record OwnPostsWithNCommentsQuery(
-        int user,
+        long user,
         @Positive
         int commentsNum,
         @PositiveOrZero
@@ -13,7 +13,7 @@ public record OwnPostsWithNCommentsQuery(
         @Positive
         int pageSize
 )  implements SelfValidating<OwnPostsWithNCommentsQuery>{
-    public OwnPostsWithNCommentsQuery(int user, int commentsNum, int pageNum, int pageSize){
+    public OwnPostsWithNCommentsQuery(long user, int commentsNum, int pageNum, int pageSize){
         this.user = user;
         this.commentsNum = commentsNum;
         this.pageNum = pageNum;

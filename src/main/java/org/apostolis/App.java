@@ -25,7 +25,7 @@ import org.apostolis.users.adapter.in.web.GetFollowsController;
 
 public class App 
 {
-    public static ThreadLocal<Integer> currentUserId = new ThreadLocal<>();
+    public static ThreadLocal<Long> currentUserId = new ThreadLocal<>();
     public static void main( String[] args )
     {
         AppConfig appConfig = new AppConfig("production");

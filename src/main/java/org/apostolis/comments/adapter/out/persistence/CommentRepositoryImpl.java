@@ -41,34 +41,19 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
-    public int getCountOfUserCommentsUnderThisPost(int user, int post) {
-        int comments_count;
-        DbUtils.ThrowingFunction<Connection, Integer, Exception> get_comments_count = (conn) -> {
-            int count;
-            try(PreparedStatement stm = conn.prepareStatement(
-                    "SELECT COUNT(*) FROM comments WHERE post_id=? and user_id=?")){
-                stm.setInt(1, post);
-                stm.setInt(2, user);
-                ResultSet rs = stm.executeQuery();
-                rs.next();
-                count = rs.getInt("count");
-            }
-            return count;
-        };
-        try{
-            comments_count = dbUtils.doInTransaction(get_comments_count);
-            logger.info(String.valueOf(comments_count));
-        }catch(Exception e){
-            logger.error("Could not retrieve the comments count from database");
-            throw new CommentCreationException("Could not retrieve the comments count from database. Invalid post id",e);
-        }
-        return comments_count;
+    public long getCountOfUserCommentsUnderThisPost(long user, long post) {
+        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        return sessionFactory.fromTransaction(session ->
+                session.createSelectionQuery(
+                        "select count(*) from CommentEntity where post.post_id=:post",Long.class)
+                .setParameter("post",post)
+                .getSingleResult());
     }
 
     @Override
-    public HashMap<Integer, HashMap<Integer,String>> getCommentsGivenPostIds(ArrayList<Integer> post_ids, int pageNum, int pageSize) {
+    public HashMap<Long, HashMap<Long,String>> getCommentsGivenPostIds(ArrayList<Long> post_ids, int pageNum, int pageSize) {
 
-        DbUtils.ThrowingFunction<Connection, HashMap<Integer,HashMap<Integer,String>>, Exception> getComments = (conn)->{
+        DbUtils.ThrowingFunction<Connection, HashMap<Long,HashMap<Long,String>>, Exception> getComments = (conn)->{
 
             StringBuilder query = new StringBuilder("""
                     WITH numbered_comments AS(
@@ -79,19 +64,19 @@ public class CommentRepositoryImpl implements CommentRepository {
                     FROM comments)
                     SELECT * FROM numbered_comments
                     WHERE post_id IN(""");
-            for(int id: post_ids){
+            for(long id: post_ids){
                 query.append(id).append(",");
             }
             query.setCharAt(query.lastIndexOf(","),')');
             query.append("AND row_number > ? and row_number <= ?");
-            HashMap<Integer,HashMap<Integer,String>> results = new LinkedHashMap<>();
+            HashMap<Long,HashMap<Long,String>> results = new LinkedHashMap<>();
             try(PreparedStatement stm = conn.prepareStatement(query.toString())){
                 stm.setInt(1,pageNum*pageSize);
                 stm.setInt(2, pageSize*(pageNum+1));
                 ResultSet rs = stm.executeQuery();
                 while(rs.next()){
-                    int id = rs.getInt("post_id");
-                    int comment_id = rs.getInt("comment_id");
+                    long id = rs.getInt("post_id");
+                    long comment_id = rs.getLong("comment_id");
                     String text = rs.getString("text");
                     if(!results.containsKey(id)) {
                         results.put(id, new LinkedHashMap<>());

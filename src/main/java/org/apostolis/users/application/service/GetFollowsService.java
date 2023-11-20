@@ -15,12 +15,12 @@ public class GetFollowsService implements GetFollowersAndUsersToFollowUseCase {
     }
 
     @Override
-    public HashMap<Integer,String> getFollowers(int user) {
+    public HashMap<Long, String> getFollowers(long user) {
         return followsRepository.getFollowers(user);
     }
 
     @Override
-    public HashMap<Integer,String> getUsersToFollow(int user) {
+    public HashMap<Long,String> getUsersToFollow(long user) {
         return followsRepository.getUsersToFollow(user);
     }
 }

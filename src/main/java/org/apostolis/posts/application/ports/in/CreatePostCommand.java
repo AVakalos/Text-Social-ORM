@@ -7,7 +7,7 @@ import org.apostolis.common.validation.StringEnumeration;
 import org.apostolis.users.domain.Role;
 
 public record CreatePostCommand(
-        int user,
+        long user,
         @NotNull
         @NotBlank
         String text,
@@ -16,7 +16,7 @@ public record CreatePostCommand(
 
         implements SelfValidating<CreatePostCommand> {
 
-    public CreatePostCommand(int user, String text, String role) {
+    public CreatePostCommand(long user, String text, String role) {
         this.user = user;
         this.text = text;
         this.role= role;

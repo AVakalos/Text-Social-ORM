@@ -21,7 +21,7 @@ public class CommentService implements CreateCommentUseCase {
         Role role = Role.valueOf(createCommentCommand.role());
 
         if(role.equals(Role.FREE)){
-            int comments_count = commentRepository.getCountOfUserCommentsUnderThisPost(
+            long comments_count = commentRepository.getCountOfUserCommentsUnderThisPost(
                     createCommentCommand.user(), createCommentCommand.post());
 
             int max_comments_number = AppConfig.getFreeMaxComments();

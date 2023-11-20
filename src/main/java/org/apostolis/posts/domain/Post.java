@@ -5,11 +5,11 @@ import org.apostolis.AppConfig;
 import java.time.LocalDateTime;
 
 public record Post (
-        int user,
+        long user,
         String text,
         LocalDateTime createdAt){
 
-    public Post(int user, String text){
+    public Post(long user, String text){
         this(user,text,LocalDateTime.now(AppConfig.clock));
     }
 }

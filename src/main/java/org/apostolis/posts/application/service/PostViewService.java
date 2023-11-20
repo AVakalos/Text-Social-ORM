@@ -28,25 +28,25 @@ public class PostViewService implements PostViewsUseCase {
     }
 
     @Override
-    public Map<Integer,List<Object>> getFollowingPosts(PostViewsQuery postViewsQuery) {
+    public Map<Long,List<Object>> getFollowingPosts(PostViewsQuery postViewsQuery) {
 
         // {following_person1_id: [following_person_name,{post1_id: post1_text,...}],...}
-        Map<Integer,List<Object>> result = new LinkedHashMap<>();
+        Map<Long,List<Object>> result = new LinkedHashMap<>();
 
-        HashMap<Integer,String> following_users = followsRepository.getFollowing(postViewsQuery.user());
+        HashMap<Long, String> following_users = followsRepository.getFollowing(postViewsQuery.user());
         if(following_users.isEmpty()){
             return result;
         }
-        ArrayList<Integer> listOfFollowingIds = new ArrayList<>(following_users.keySet());
+        ArrayList<Long> listOfFollowingIds = new ArrayList<>(following_users.keySet());
 
-        HashMap<Integer, HashMap<Integer, String>> following_posts =
+        HashMap<Long, HashMap<Long, String>> following_posts =
                 postRepository.getPostsGivenUsersIds(listOfFollowingIds,postViewsQuery.pageNum(),postViewsQuery.pageSize());
 
         if(following_posts.isEmpty()){
             return result;
         }
 
-        for(int following_id: listOfFollowingIds){
+        for(long following_id: listOfFollowingIds){
             List<Object> nameAndPosts = new ArrayList<>();
             nameAndPosts.add(following_users.get(following_id));
             nameAndPosts.add(Objects.requireNonNullElse(following_posts.get(following_id), "No posts"));
@@ -57,31 +57,31 @@ public class PostViewService implements PostViewsUseCase {
     }
 
     @Override
-    public Map<Integer,List<Object>> getOwnPostsWithNLatestComments(OwnPostsWithNCommentsQuery viewQuery) {
-        int user = viewQuery.user();
+    public Map<Long,List<Object>> getOwnPostsWithNLatestComments(OwnPostsWithNCommentsQuery viewQuery) {
+        long user = viewQuery.user();
 
         // {own_post_id:[post_text,{comments_id: comment,...}],...}
-        Map<Integer,List<Object>> result = new LinkedHashMap<>();
+        Map<Long,List<Object>> result = new LinkedHashMap<>();
 
-        ArrayList<Integer> user_id = new ArrayList<>(List.of(user));
-        HashMap<Integer, HashMap<Integer, String>> posts =
+        ArrayList<Long> user_id = new ArrayList<>(List.of(user));
+        HashMap<Long, HashMap<Long, String>> posts =
                 postRepository.getPostsGivenUsersIds(user_id,viewQuery.pageNum(),viewQuery.pageSize());
         if(posts.isEmpty()){
             return result;
         }
-        HashMap<Integer,String> ownPosts = posts.get(user);
+        HashMap<Long,String> ownPosts = posts.get(user);
 
-        ArrayList<Integer> listOfPostIds = new ArrayList<>(ownPosts.keySet());
-        HashMap<Integer, HashMap<Integer,String>> latest_N_comments =
+        ArrayList<Long> listOfPostIds = new ArrayList<>(ownPosts.keySet());
+        HashMap<Long, HashMap<Long,String>> latest_N_comments =
                 commentRepository.getCommentsGivenPostIds(listOfPostIds,0,viewQuery.commentsNum());
 
 
-        for(int post_id: ownPosts.keySet()){
+        for(long post_id: ownPosts.keySet()){
 
             List<Object> postTextAndComments = new ArrayList<>();
             postTextAndComments.add(ownPosts.get(post_id));
 
-            HashMap<Integer, String> commentsMap = latest_N_comments.get(post_id);
+            HashMap<Long, String> commentsMap = latest_N_comments.get(post_id);
             postTextAndComments.add(Objects.requireNonNullElse(commentsMap, "No comments"));
             result.put(post_id,postTextAndComments);
         }

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int id;
+    long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="post_id")

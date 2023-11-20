@@ -9,8 +9,8 @@ import java.util.Optional;
 
 public interface PostRepository {
     void savePost(Post postToSave);
-    HashMap<Integer,HashMap<Integer,String>> getPostsGivenUsersIds(ArrayList<Integer> user_ids, int pageNum, int pageSize);
-    void registerLink(int post);
-    boolean checkLink(int user, int post);
-    boolean isMyPost(int user, int post);
+    HashMap<Long, HashMap<Long,String>> getPostsGivenUsersIds(ArrayList<Long> user_ids, int pageNum, int pageSize);
+    void registerLink(long post);
+    boolean checkLink(long post);
+    boolean isMyPost(long user, long post);
 }

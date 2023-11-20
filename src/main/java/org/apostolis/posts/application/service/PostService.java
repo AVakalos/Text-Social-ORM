@@ -18,7 +18,7 @@ public class PostService implements CreatePostUseCase {
 
     @Override
     public void createPost(CreatePostCommand createPostCommand) {
-        int user = createPostCommand.user();
+        long user = createPostCommand.user();
         String text = createPostCommand.text();
         Role role = Role.valueOf(createPostCommand.role());
 

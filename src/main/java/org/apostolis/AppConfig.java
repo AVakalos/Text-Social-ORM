@@ -91,8 +91,8 @@ public class AppConfig {
         passwordEncoder = new PasswordEncoder();
         tokenManager = new JjwtTokenManagerImpl();
 
-        userRepository = new UserRepositoryImpl(dbUtils);
-        followsRepository = new FollowsRepositoryImpl(dbUtils);
+        userRepository = new UserRepositoryImpl();
+        followsRepository = new FollowsRepositoryImpl();
         commentRepository = new CommentRepositoryImpl(dbUtils);
         postRepository = new PostRepositoryImpl(dbUtils);
 

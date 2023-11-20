@@ -52,7 +52,7 @@ public class ViewPostsController {
                 App.currentUserId.get(), commentsNum, pageNum, pageSize);
 
         Map<String, Object> response = new HashMap<>();
-        Map<Integer,List<Object>> postsWithComments;
+        Map<Long,List<Object>> postsWithComments;
         postsWithComments = postViewsService.getOwnPostsWithNLatestComments(viewQuery);
         response.put("data",postsWithComments);
         response.put("current_page",pageNum);

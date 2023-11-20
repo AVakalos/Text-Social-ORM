@@ -5,13 +5,13 @@ import jakarta.validation.constraints.PositiveOrZero;
 import org.apostolis.common.validation.SelfValidating;
 
 public record PostViewsQuery(
-        int user,
+        long user,
         @PositiveOrZero
         int pageNum,
         @Positive
         int pageSize) implements SelfValidating<PostViewsQuery> {
 
-    public PostViewsQuery(int user, int pageNum, int pageSize){
+    public PostViewsQuery(long user, int pageNum, int pageSize){
         this.user = user;
         this.pageNum = pageNum;
         this.pageSize = pageSize;

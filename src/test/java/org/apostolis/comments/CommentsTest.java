@@ -137,7 +137,7 @@ public class CommentsTest {
     @Test
     void getAllCommentsOnOwnPosts(){
         ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(1,0,Integer.MAX_VALUE);
-        Map<Integer, List<Object>> result = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
+        Map<Long, List<Object>> result = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
 
         HashMap<Integer, String> post1_comments = (HashMap)result.get(2).get(1);
         HashMap<Integer, String> post2_comments = (HashMap)result.get(1).get(1);
@@ -149,7 +149,7 @@ public class CommentsTest {
     @Test
     void getLatestCommentsOnOwnOrFollowersPosts(){
         ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(2,0,Integer.MAX_VALUE);
-        Map<Integer, HashMap<Integer,List<Object>>> result =
+        Map<Long, HashMap<Long,List<Object>>> result =
                 commentsViewsService.getLatestCommentsOnOwnOrFollowingPosts(viewCommentsQuery);
         assertEquals(4,result.get(1).size() + result.get(3).size() + result.get(2).size());
     }

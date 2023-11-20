@@ -8,6 +8,6 @@ import org.apostolis.users.domain.User;
 public interface UserRepository {
     void save(User user);
     User getByUsername(String username) throws DatabaseException;
-    int getUserIdFromUsername(String username);
-    String getUsernameFromId(int userId);
+    long getUserIdFromUsername(String username);
+    String getUsernameFromId(long userId);
 }

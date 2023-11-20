@@ -15,8 +15,8 @@ public class FollowsService implements FollowsUseCase {
 
     @Override
     public void followUser(FollowsCommand followsCommand) throws DatabaseException, IllegalArgumentException{
-        int user = followsCommand.user();
-        int user_to_follow = followsCommand.follows();
+        long user = followsCommand.user();
+        long user_to_follow = followsCommand.follows();
         if (user != user_to_follow){
             followsRepository.saveFollow(user, user_to_follow);
         }else{

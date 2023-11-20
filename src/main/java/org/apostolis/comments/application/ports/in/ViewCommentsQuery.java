@@ -5,12 +5,12 @@ import jakarta.validation.constraints.PositiveOrZero;
 import org.apostolis.common.validation.SelfValidating;
 
 public record ViewCommentsQuery(
-        int user,
+        long user,
         @PositiveOrZero
         int pageNum,
         @Positive
         int pageSize) implements SelfValidating<ViewCommentsQuery> {
-    public ViewCommentsQuery(int user, int pageNum, int pageSize){
+    public ViewCommentsQuery(long user, int pageNum, int pageSize){
         this.user = user;
         this.pageNum = pageNum;
         this.pageSize = pageSize;

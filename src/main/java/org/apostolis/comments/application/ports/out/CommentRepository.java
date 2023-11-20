@@ -7,6 +7,6 @@ import java.util.HashMap;
 
 public interface CommentRepository {
     void saveComment(Comment commentToSave);
-    int getCountOfUserCommentsUnderThisPost(int user, int post);
-    HashMap<Integer, HashMap<Integer,String>> getCommentsGivenPostIds(ArrayList<Integer> post_ids, int pageNum, int pageSize);
+    long getCountOfUserCommentsUnderThisPost(long user, long post);
+    HashMap<Long, HashMap<Long,String>> getCommentsGivenPostIds(ArrayList<Long> post_ids, int pageNum, int pageSize);
 }

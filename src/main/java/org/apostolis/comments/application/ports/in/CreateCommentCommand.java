@@ -8,9 +8,9 @@ import org.apostolis.common.validation.StringEnumeration;
 import org.apostolis.users.domain.Role;
 
 public record CreateCommentCommand(
-        int user,
+        long user,
         @Positive
-        int post,
+        long post,
         @NotNull
         @NotBlank
         String text,
@@ -19,7 +19,7 @@ public record CreateCommentCommand(
 
 ) implements SelfValidating<CreateCommentCommand> {
 
-    public CreateCommentCommand(int user, int post, String text, String role){
+    public CreateCommentCommand(long user, long post, String text, String role){
         this.user = user;
         this.post = post;
         this.text = text;
