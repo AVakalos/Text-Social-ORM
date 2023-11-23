@@ -1,10 +1,7 @@
 package org.apostolis.posts.application.service;
 
 import org.apostolis.AppConfig;
-import org.apostolis.posts.application.ports.in.CreateLinkCommand;
-import org.apostolis.posts.application.ports.in.ManageLinkUseCase;
-import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
-import org.apostolis.posts.application.ports.in.PostViewsUseCase;
+import org.apostolis.posts.application.ports.in.*;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
 
@@ -56,14 +53,11 @@ public class LinkService implements ManageLinkUseCase {
         String decoded = URLDecoder.decode(encoded, StandardCharsets.UTF_8);
 
         String[] splitted =  decoded.split(",");
-        int user_id = Integer.parseInt(splitted[0]);
-        int post_id = Integer.parseInt(splitted[1]);
+//        long user_id = Long.parseLong(splitted[0]);
+        long post_id = Long.parseLong(splitted[1]);
         if(postRepository.checkLink(post_id)){
-            System.out.println("SHARED");
-            OwnPostsWithNCommentsQuery query = new OwnPostsWithNCommentsQuery(
-                    user_id,100,0,Integer.MAX_VALUE);
-
-            return postViewsService.getOwnPostsWithNLatestComments(query).get(post_id);
+            PostWithNCommentsQuery query = new PostWithNCommentsQuery(post_id,100);
+            return postViewsService.getPostWithNLatestComments(query);
         }else{
             throw new IllegalArgumentException("The link is invalid");
         }

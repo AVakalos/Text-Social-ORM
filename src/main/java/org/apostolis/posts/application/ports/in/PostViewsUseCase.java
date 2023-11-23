@@ -6,4 +6,6 @@ import java.util.Map;
 public interface PostViewsUseCase {
     Map<Long, List<Object>> getFollowingPosts(PostViewsQuery viewQuery);
     Map<Long,List<Object>> getOwnPostsWithNLatestComments(OwnPostsWithNCommentsQuery viewQuery);
+    List<Object> getPostWithNLatestComments(PostWithNCommentsQuery viewQuery);
+
 }

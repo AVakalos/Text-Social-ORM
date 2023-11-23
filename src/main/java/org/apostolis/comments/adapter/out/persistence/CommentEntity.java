@@ -2,11 +2,9 @@ package org.apostolis.comments.adapter.out.persistence;
 
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
-import org.apostolis.users.domain.User;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +14,7 @@ import java.time.LocalDateTime;
 public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long id;
+    long comment_id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="post_id")

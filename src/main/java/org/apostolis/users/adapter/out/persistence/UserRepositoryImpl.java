@@ -1,5 +1,6 @@
 package org.apostolis.users.adapter.out.persistence;
 
+import jakarta.persistence.NoResultException;
 import org.apostolis.common.DbUtils;
 import org.apostolis.common.HibernateUtil;
 import org.apostolis.exception.DatabaseException;
@@ -30,11 +31,15 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public User getByUsername(String username) {
         SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-
-        UserEntity user = sessionFactory.fromTransaction(session ->
-                session.createSelectionQuery("from UserEntity where username = :username ", UserEntity.class)
-                .setParameter("username", username)
-                .getSingleResult());
+        UserEntity user;
+        try {
+            user = sessionFactory.fromTransaction(session ->
+                    session.createSelectionQuery("from UserEntity where username = :username ", UserEntity.class)
+                            .setParameter("username", username)
+                            .getSingleResult());
+        }catch(NoResultException e){
+            return null;
+        }
         return new User(user.getUsername(), user.getPassword(),user.getRole());
     }
 

@@ -1,10 +1,13 @@
 package org.apostolis.posts.application.service;
 
 import org.apostolis.comments.application.ports.out.CommentRepository;
+import org.apostolis.common.PageRequest;
 import org.apostolis.posts.application.ports.in.PostViewsUseCase;
+import org.apostolis.posts.application.ports.in.PostWithNCommentsQuery;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
 import org.apostolis.posts.application.ports.in.PostViewsQuery;
+import org.apostolis.posts.domain.PostInfo;
 import org.apostolis.users.application.ports.out.FollowsRepository;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,14 +36,14 @@ public class PostViewService implements PostViewsUseCase {
         // {following_person1_id: [following_person_name,{post1_id: post1_text,...}],...}
         Map<Long,List<Object>> result = new LinkedHashMap<>();
 
-        HashMap<Long, String> following_users = followsRepository.getFollowing(postViewsQuery.user());
+        HashMap<Long, String> following_users = followsRepository.getFollowing(postViewsQuery.user(),postViewsQuery.pageRequest());
         if(following_users.isEmpty()){
             return result;
         }
         ArrayList<Long> listOfFollowingIds = new ArrayList<>(following_users.keySet());
 
         HashMap<Long, HashMap<Long, String>> following_posts =
-                postRepository.getPostsGivenUsersIds(listOfFollowingIds,postViewsQuery.pageNum(),postViewsQuery.pageSize());
+                postRepository.getPostsGivenUsersIds(listOfFollowingIds, new PageRequest(0, Integer.MAX_VALUE));
 
         if(following_posts.isEmpty()){
             return result;
@@ -65,7 +68,7 @@ public class PostViewService implements PostViewsUseCase {
 
         ArrayList<Long> user_id = new ArrayList<>(List.of(user));
         HashMap<Long, HashMap<Long, String>> posts =
-                postRepository.getPostsGivenUsersIds(user_id,viewQuery.pageNum(),viewQuery.pageSize());
+                postRepository.getPostsGivenUsersIds(user_id,viewQuery.pageRequest());
         if(posts.isEmpty()){
             return result;
         }
@@ -73,7 +76,7 @@ public class PostViewService implements PostViewsUseCase {
 
         ArrayList<Long> listOfPostIds = new ArrayList<>(ownPosts.keySet());
         HashMap<Long, HashMap<Long,String>> latest_N_comments =
-                commentRepository.getCommentsGivenPostIds(listOfPostIds,0,viewQuery.commentsNum());
+                commentRepository.getCommentsGivenPostIds(listOfPostIds,viewQuery.pageRequest());
 
 
         for(long post_id: ownPosts.keySet()){
@@ -86,5 +89,20 @@ public class PostViewService implements PostViewsUseCase {
             result.put(post_id,postTextAndComments);
         }
         return result;
+    }
+
+    @Override
+    public List<Object> getPostWithNLatestComments(PostWithNCommentsQuery viewQuery) {
+        PostInfo post = postRepository.getPostById(viewQuery.post_id());
+        ArrayList<Long> id = new ArrayList<>();
+        id.add(post.post_id());
+        HashMap<Long, HashMap<Long,String>> latest_N_comments =
+                commentRepository.getCommentsGivenPostIds(id,new PageRequest(0, viewQuery.comments_num()));
+
+        List<Object> postTextAndComments = new ArrayList<>();
+        postTextAndComments.add(post.text());
+        postTextAndComments.add(latest_N_comments.get(post.post_id()));
+
+        return postTextAndComments;
     }
 }

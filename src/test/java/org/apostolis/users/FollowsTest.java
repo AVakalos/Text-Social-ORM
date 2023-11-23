@@ -92,19 +92,19 @@ public class FollowsTest {
 
     @Test
     void getFollowers(){
-        HashMap<Long, String> results = getFollowsService.getFollowers(1);
+        HashMap<Long, String> results = getFollowsService.getFollowers(1,0,Integer.MAX_VALUE);
         assertEquals(2,results.size());
     }
 
     @Test
     void getUsersToFollowAvailable(){
-        HashMap<Long, String> results = getFollowsService.getUsersToFollow(3);
+        HashMap<Long, String> results = getFollowsService.getUsersToFollow(3,0,Integer.MAX_VALUE);
         assertEquals(1,results.size());
     }
 
     @Test
     void getUsersToFollowNoAvailable(){
-        HashMap<Long, String> results = getFollowsService.getUsersToFollow(2);
+        HashMap<Long, String> results = getFollowsService.getUsersToFollow(2,0,Integer.MAX_VALUE);
         assertEquals(0,results.size());
     }
 }

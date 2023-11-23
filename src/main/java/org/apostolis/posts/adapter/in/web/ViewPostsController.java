@@ -2,6 +2,7 @@ package org.apostolis.posts.adapter.in.web;
 
 import io.javalin.http.Context;
 import org.apostolis.App;
+import org.apostolis.common.PageRequest;
 import org.apostolis.posts.application.ports.in.PostViewsUseCase;
 import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
 import org.apostolis.posts.application.ports.in.PostViewsQuery;
@@ -27,7 +28,7 @@ public class ViewPostsController {
         }catch (Exception e){
             throw new IllegalArgumentException("page and size must be positive integers");
         }
-        PostViewsQuery postViewsQuery = new PostViewsQuery(App.currentUserId.get(),pageNum,pageSize);
+        PostViewsQuery postViewsQuery = new PostViewsQuery(App.currentUserId.get(), new PageRequest(pageNum,pageSize));
 
         Map<String, Object> response = new HashMap<>();
         response.put("data",postViewsService.getFollowingPosts(postViewsQuery));
@@ -49,7 +50,7 @@ public class ViewPostsController {
             throw new IllegalArgumentException("page and size and comments must be positive integers");
         }
         OwnPostsWithNCommentsQuery viewQuery = new OwnPostsWithNCommentsQuery(
-                App.currentUserId.get(), commentsNum, pageNum, pageSize);
+                App.currentUserId.get(), commentsNum, new PageRequest(pageNum,pageSize));
 
         Map<String, Object> response = new HashMap<>();
         Map<Long,List<Object>> postsWithComments;

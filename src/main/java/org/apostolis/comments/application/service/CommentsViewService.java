@@ -3,6 +3,7 @@ package org.apostolis.comments.application.service;
 import org.apostolis.comments.application.ports.in.CommentsViewsUseCase;
 import org.apostolis.comments.application.ports.in.ViewCommentsQuery;
 import org.apostolis.comments.application.ports.out.CommentRepository;
+import org.apostolis.common.PageRequest;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.users.application.ports.out.FollowsRepository;
 
@@ -25,14 +26,14 @@ public class CommentsViewService implements CommentsViewsUseCase {
         Map<Long, List<Object>> result = new LinkedHashMap<>();
         ArrayList<Long> user_id = new ArrayList<>(List.of(viewCommentsQuery.user()));
         HashMap<Long, String> ownPosts = postRepository.getPostsGivenUsersIds(
-                user_id,0, Integer.MAX_VALUE).get(viewCommentsQuery.user());
+                user_id,new PageRequest(0, Integer.MAX_VALUE)).get(viewCommentsQuery.user());
 
         if(ownPosts == null){
             return result;
         }
         ArrayList<Long> post_ids = new ArrayList<>(ownPosts.keySet());
         HashMap<Long, HashMap<Long, String>> comments = commentRepository.getCommentsGivenPostIds(
-                post_ids,viewCommentsQuery.pageNum(),viewCommentsQuery.pageSize());
+                post_ids,viewCommentsQuery.pageRequest());
 
         for(long post_id: post_ids){
             if(comments.get(post_id) != null){
@@ -50,7 +51,7 @@ public class CommentsViewService implements CommentsViewsUseCase {
 
         // {user_id(me or users i follow):{post_id:[post_text,{comments_id:comment_text,...}],...},...}
         Map<Long, HashMap<Long,List<Object>>> result = new LinkedHashMap<>();
-        HashMap<Long, String> following_users = followsRepository.getFollowing(viewCommentsQuery.user());
+        HashMap<Long, String> following_users = followsRepository.getFollowing(viewCommentsQuery.user(),new PageRequest(0, Integer.MAX_VALUE));
 
         if(following_users.isEmpty()){
             return result;
@@ -60,7 +61,7 @@ public class CommentsViewService implements CommentsViewsUseCase {
         user_ids.add(viewCommentsQuery.user());
 
         HashMap<Long, HashMap<Long, String>> own_and_following_posts = postRepository.getPostsGivenUsersIds(
-                user_ids, viewCommentsQuery.pageNum(), viewCommentsQuery.pageSize());
+                user_ids, viewCommentsQuery.pageRequest());
 
         if(own_and_following_posts.isEmpty()){
             return result;
@@ -72,7 +73,7 @@ public class CommentsViewService implements CommentsViewsUseCase {
         }
 
         HashMap<Long, HashMap<Long,String>> latest_comments = commentRepository.getCommentsGivenPostIds(
-                post_ids, 0, 1);
+                post_ids, new PageRequest(0, 1));
 
         if(latest_comments.isEmpty()){
             return null;

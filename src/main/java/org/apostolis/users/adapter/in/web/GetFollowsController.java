@@ -24,7 +24,7 @@ public class GetFollowsController {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
 
-        HashMap<Long, String> results = getFollowersAndUsersToFollowUseCase.getFollowers(App.currentUserId.get());
+        HashMap<Long, String> results = getFollowersAndUsersToFollowUseCase.getFollowers(App.currentUserId.get(),0,Integer.MAX_VALUE);
         ctx.result(user+" followers: "+results.toString());
 
     }
@@ -33,7 +33,7 @@ public class GetFollowsController {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
 
-        HashMap<Long, String> results = getFollowersAndUsersToFollowUseCase.getUsersToFollow(App.currentUserId.get());
+        HashMap<Long, String> results = getFollowersAndUsersToFollowUseCase.getUsersToFollow(App.currentUserId.get(),0,Integer.MAX_VALUE);
         ctx.result(user+" can follow: "+results.toString());
     }
 }

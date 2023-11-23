@@ -94,7 +94,7 @@ public class AppConfig {
         userRepository = new UserRepositoryImpl();
         followsRepository = new FollowsRepositoryImpl();
         commentRepository = new CommentRepositoryImpl(dbUtils);
-        postRepository = new PostRepositoryImpl(dbUtils);
+        postRepository = new PostRepositoryImpl();
 
 
         registerService = new RegisterService(userRepository, passwordEncoder);

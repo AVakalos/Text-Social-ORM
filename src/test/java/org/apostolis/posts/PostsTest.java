@@ -3,6 +3,7 @@ package org.apostolis.posts;
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
 import org.apostolis.common.DbUtils;
+import org.apostolis.common.PageRequest;
 import org.apostolis.posts.application.ports.in.*;
 import org.apostolis.posts.domain.PostCreationException;
 import org.junit.jupiter.api.BeforeAll;
@@ -132,8 +133,8 @@ public class PostsTest {
 
     @Test
     void getFollowingPosts(){
-        PostViewsQuery postViewsQuery = new PostViewsQuery(2,0,Integer.MAX_VALUE);
-        Map<Integer, List<Object>> result = postViewService.getFollowingPosts(postViewsQuery);
+        PostViewsQuery postViewsQuery = new PostViewsQuery(2, new PageRequest(0,Integer.MAX_VALUE));
+        Map<Long, List<Object>> result = postViewService.getFollowingPosts(postViewsQuery);
         HashMap<Integer, String> posts_from_first_follower = (HashMap)result.get(1).get(1);
         HashMap<Integer, String> posts_from_second_follower = (HashMap)result.get(3).get(1);
 
@@ -147,8 +148,8 @@ public class PostsTest {
 
     @Test
     void getOwnPostsWithNLatestComments(){
-        OwnPostsWithNCommentsQuery viewQuery = new OwnPostsWithNCommentsQuery(1,2,0,Integer.MAX_VALUE);
-        Map<Integer, List<Object>> results = postViewService.getOwnPostsWithNLatestComments(viewQuery);
+        OwnPostsWithNCommentsQuery viewQuery = new OwnPostsWithNCommentsQuery(1,2,new PageRequest(0,Integer.MAX_VALUE));
+        Map<Long, List<Object>> results = postViewService.getOwnPostsWithNLatestComments(viewQuery);
 
         HashMap<Integer, String> post1_comments = (HashMap)results.get(1).get(1);
         HashMap<Integer, String> post2_comments = (HashMap)results.get(2).get(1);

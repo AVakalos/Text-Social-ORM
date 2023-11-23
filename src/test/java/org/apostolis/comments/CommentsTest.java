@@ -8,6 +8,7 @@ import org.apostolis.comments.application.ports.in.CreateCommentUseCase;
 import org.apostolis.comments.application.ports.in.ViewCommentsQuery;
 import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.common.DbUtils;
+import org.apostolis.common.PageRequest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -136,7 +137,7 @@ public class CommentsTest {
 
     @Test
     void getAllCommentsOnOwnPosts(){
-        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(1,0,Integer.MAX_VALUE);
+        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(1,new PageRequest(0,Integer.MAX_VALUE));
         Map<Long, List<Object>> result = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
 
         HashMap<Integer, String> post1_comments = (HashMap)result.get(2).get(1);
@@ -148,7 +149,7 @@ public class CommentsTest {
 
     @Test
     void getLatestCommentsOnOwnOrFollowersPosts(){
-        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(2,0,Integer.MAX_VALUE);
+        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(2,new PageRequest(0,Integer.MAX_VALUE));
         Map<Long, HashMap<Long,List<Object>>> result =
                 commentsViewsService.getLatestCommentsOnOwnOrFollowingPosts(viewCommentsQuery);
         assertEquals(4,result.get(1).size() + result.get(3).size() + result.get(2).size());

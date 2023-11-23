@@ -4,6 +4,7 @@ import io.javalin.http.Context;
 import org.apostolis.App;
 import org.apostolis.comments.application.ports.in.CommentsViewsUseCase;
 import org.apostolis.comments.application.ports.in.ViewCommentsQuery;
+import org.apostolis.common.PageRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class ViewCommentsController {
         }catch (Exception e){
             throw new IllegalArgumentException("page and size must be positive integers");
         }
-        ViewCommentsQuery viewsQuery = new ViewCommentsQuery(App.currentUserId.get(),pageNum, pageSize);
+        ViewCommentsQuery viewsQuery = new ViewCommentsQuery(App.currentUserId.get(),new PageRequest(pageNum, pageSize));
 
         Map<String, Object> response = new HashMap<>();
         response.put("data",commentsViewService.getCommentsOnOwnPosts(viewsQuery));
@@ -43,7 +44,7 @@ public class ViewCommentsController {
         }catch (Exception e){
             throw new IllegalArgumentException("page and size must be positive integers");
         }
-        ViewCommentsQuery viewsQuery = new ViewCommentsQuery(App.currentUserId.get(),pageNum, pageSize);
+        ViewCommentsQuery viewsQuery = new ViewCommentsQuery(App.currentUserId.get(),new PageRequest(pageNum, pageSize));
         Map<String, Object> response = new HashMap<>();
         response.put("data",commentsViewService.getLatestCommentsOnOwnOrFollowingPosts(viewsQuery));
         response.put("current_page",pageNum);
