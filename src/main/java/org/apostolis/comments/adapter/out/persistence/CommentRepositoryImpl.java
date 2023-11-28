@@ -1,130 +1,125 @@
 package org.apostolis.comments.adapter.out.persistence;
 
+import jakarta.persistence.Tuple;
+import org.apostolis.AppConfig;
 import org.apostolis.comments.application.ports.out.CommentRepository;
 import org.apostolis.comments.domain.Comment;
-import org.apostolis.comments.domain.CommentCreationException;
-import org.apostolis.common.DbUtils;
-import org.apostolis.common.HibernateUtil;
+import org.apostolis.comments.domain.CommentDTO;
 import org.apostolis.common.PageRequest;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
+import org.apostolis.posts.adapter.out.persistence.PostId;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
+import org.apostolis.users.adapter.out.persistence.UserId;
 import org.hibernate.SessionFactory;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class CommentRepositoryImpl implements CommentRepository {
-
-    private final DbUtils dbUtils;
-
     private static final Logger logger = LoggerFactory.getLogger(CommentRepositoryImpl.class);
-
-    public CommentRepositoryImpl(DbUtils dbUtils) {
-        this.dbUtils = dbUtils;
-    }
 
     @Override
     public void saveComment(Comment commentToSave) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         sessionFactory.inTransaction((session -> {
-            UserEntity commentCreator = session.getReference(UserEntity.class, commentToSave.user());
+            UserEntity commentCreator = session.getReference(UserEntity.class, commentToSave.user().getUser_id());
             PostEntity post = session.getReference(PostEntity.class, commentToSave.post());
             session.persist(new CommentEntity(post, commentCreator, commentToSave.text(), commentToSave.createdAt()));
         }));
     }
 
     @Override
-    public long getCountOfUserCommentsUnderThisPost(long user, long post) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-        return sessionFactory.fromTransaction(session ->
-                session.createSelectionQuery(
-                        "select count(*) from CommentEntity where post.post_id = :post",Long.class)
-                .setParameter("post",post)
-                .getSingleResult());
+    public long getCountOfUserCommentsUnderThisPost(UserId UserId, PostId post) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
+        return sessionFactory.fromTransaction(session -> {
+            String query = """
+                    select count(*) as count
+                    from CommentEntity
+                    where post.post_id = :post and commentCreator.user_id=:user
+                    """;
+            return session.createSelectionQuery(query,Long.class)
+                    .setParameter("post",post.getPost_id())
+                    .setParameter("user",UserId.getUser_id())
+                    .getSingleResult();
+        });
     }
 
     @Override
-    public HashMap<Long, HashMap<Long,String>> getCommentsGivenPostIds(ArrayList<Long> post_ids, PageRequest req) {
-
-//        DbUtils.ThrowingFunction<Connection, HashMap<Long,HashMap<Long,String>>, Exception> getComments = (conn)->{
-//
-//            StringBuilder query = new StringBuilder("""
-//                    WITH numbered_comments AS(
-//                        SELECT *, row_number() over (
-//                            partition by post_id
-//                            ORDER BY created DESC
-//                        ) AS row_number
-//                    FROM comments)
-//                    SELECT * FROM numbered_comments
-//                    WHERE post_id IN(""");
-//            for(long id: post_ids){
-//                query.append(id).append(",");
-//            }
-//            query.setCharAt(query.lastIndexOf(","),')');
-//            query.append("AND row_number > ? and row_number <= ?");
-//            HashMap<Long,HashMap<Long,String>> results = new LinkedHashMap<>();
-//            try(PreparedStatement stm = conn.prepareStatement(query.toString())){
-//                stm.setInt(1,pageNum*pageSize);
-//                stm.setInt(2, pageSize*(pageNum+1));
-//                ResultSet rs = stm.executeQuery();
-//                while(rs.next()){
-//                    long id = rs.getInt("post_id");
-//                    long comment_id = rs.getLong("comment_id");
-//                    String text = rs.getString("text");
-//                    if(!results.containsKey(id)) {
-//                        results.put(id, new LinkedHashMap<>());
-//                    }
-//                    results.get(id).put(comment_id,text);
-//                }
-//            }
-//            return results;
-//        };
-//        try{
-//            return dbUtils.doInTransaction(getComments);
-//        }catch(Exception e){
-//            logger.error(e.getMessage());
-//            throw new DatabaseException(e.getMessage());
-//        }
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+    public Map<PostId, Map<CommentId, CommentDTO>> getCommentsGivenPostIds(List<PostId> post_ids, PageRequest req) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
+        List<Long> numeric_ids = new ArrayList<>();
+        for(PostId pid: post_ids){
+            numeric_ids.add(pid.getPost_id());
+        }
         try{
             return sessionFactory.fromTransaction(session -> {
-                String commentsQuery = new StringBuilder("""
-                        select post.post_id as pid, comment_id, text
+                String commentsQuery = """
+                        select post.post_id as pid, comment_id as cid, text as c_text
                         from CommentEntity
                         where post.post_id in(:post_ids)
-                        order by createdAt DESC""").toString();
-                List<Object[]> query_results = session.createQuery(commentsQuery, Object[].class)
-                        .setParameter("post_ids", post_ids)
+                        order by createdAt DESC""";
+                List<Tuple> comment_tuples = session.createQuery(commentsQuery, Tuple.class)
+                        .setParameter("post_ids", numeric_ids)
                         .setFirstResult(req.pageNumber() * req.pageSize())
                         .setMaxResults(req.pageSize())
                         .getResultList();
 
-                HashMap<Long, HashMap<Long, String>> results = new LinkedHashMap<>();
-
-                for (var comment : query_results) {
-                    System.out.println(comment[0] + "," + comment[1] + "," + comment[2]);
-                    long post_id = (Long) comment[0];
-                    long comment_id = (Long) comment[1];
-                    if (!results.containsKey(post_id)) {
-                        results.put(post_id, new LinkedHashMap<>());
-                    }
-                    results.get(post_id).put(comment_id, (String) comment[2]);
-                }
-                return results;
+                return processQueryResults(comment_tuples);
 
             });
         }catch(Exception e){
             logger.error(e.getMessage());
             throw new DatabaseException("Could not retrieve comments by post ids",e);
         }
+    }
+
+    public Map<PostId, Map<CommentId, CommentDTO>> getLatestCommentsGivenPostIds(List<PostId> post_ids) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
+        List<Long> numeric_ids = new ArrayList<>();
+        for(PostId pid: post_ids){
+            numeric_ids.add(pid.getPost_id());
+        }
+        try{
+            return sessionFactory.fromTransaction(session -> {
+
+                String commentsQuery = """
+                        select rc.pid as pid, rc.cid as cid, rc.c_text as c_text
+                        from (
+                            select post.post_id as pid,
+                                    comment_id as cid,
+                                    text as c_text,
+                                    row_number() over (partition by post.post_id) as rowNum
+                            from CommentEntity
+                            where post.post_id in(:post_ids)
+                            order by createdAt DESC) as rc
+                        where rc.rowNum = 1""";
+                List<Tuple> comment_tuples = session.createQuery(commentsQuery, Tuple.class)
+                        .setParameter("post_ids", numeric_ids)
+                        .getResultList();
+
+                return processQueryResults(comment_tuples);
+            });
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not retrieve latest comments by post ids",e);
+        }
+    }
+
+    @NotNull
+    private Map<PostId, Map<CommentId, CommentDTO>> processQueryResults(List<Tuple> comment_tuples) {
+        Map<PostId,Map<CommentId,CommentDTO>> results = new LinkedHashMap<>();
+
+        for (Tuple comment : comment_tuples) {
+            PostId post_id = new PostId((Long) comment.get("pid"));
+            CommentId comment_id = new CommentId((Long) comment.get("cid"));
+            if (!results.containsKey(post_id)) {
+                results.put(post_id, new LinkedHashMap<>());
+            }
+            results.get(post_id).put(comment_id, new CommentDTO((String) comment.get("c_text")));
+        }
+        return results;
     }
 }

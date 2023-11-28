@@ -3,28 +3,27 @@ package org.apostolis.users;
 
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
-import org.apostolis.common.DbUtils;
 import org.apostolis.exception.AuthenticationException;
 import org.apostolis.exception.InvalidTokenException;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.security.TokenManager;
+import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.apostolis.users.application.ports.in.LoginCommand;
 import org.apostolis.users.application.ports.in.LoginUseCase;
 import org.apostolis.users.application.ports.in.RegisterCommand;
 import org.apostolis.users.application.ports.in.RegisterUseCase;
 import org.apostolis.users.domain.Role;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AccountTest {
 
-    static DbUtils dbUtils;
+    static SessionFactory sessionFactory;
     static TokenManager tokenManager;
     static PasswordEncoder passwordEncoder;
     static LoginUseCase loginService;
@@ -34,28 +33,24 @@ public class AccountTest {
     @BeforeAll
     static void startDb(){
         TestSuite.initialDbSetup();
-        dbUtils = appConfig.getDbUtils();
         tokenManager = appConfig.getTokenManager();
         passwordEncoder = appConfig.getPasswordEncoder();
         loginService = appConfig.getLoginService();
         registerService = appConfig.getRegisterService();
+        sessionFactory = TestSuite.getSessionFactory();
     }
 
     @BeforeEach
     void setupDb(){
-        DbUtils.ThrowingConsumer<Connection, Exception> setup_database = (connection) -> {
-            String clean = "TRUNCATE TABLE users RESTART IDENTITY CASCADE";
-            String encoded_password = passwordEncoder.encodePassword("pass1234");
-            String insert = "INSERT INTO users (username,password,role) VALUES('testuser1@test.gr',?,'FREE')";
-            try(PreparedStatement initialize_table = connection.prepareStatement(insert);
-                PreparedStatement clean_table = connection.prepareStatement(clean)){
-                clean_table.executeUpdate();
-                initialize_table.setString(1, encoded_password);
-                initialize_table.executeUpdate();
-            }
-        };
         try {
-            dbUtils.doInTransaction(setup_database);
+            sessionFactory.inTransaction(session -> {
+                session.createNativeMutationQuery("TRUNCATE TABLE users RESTART IDENTITY CASCADE").executeUpdate();
+                String encoded_password = passwordEncoder.encodePassword("pass1234");
+                String insert = "INSERT INTO users (username,password,role) VALUES('testuser1@test.gr',?,'FREE')";
+                session.createNativeMutationQuery(insert)
+                        .setParameter(1, encoded_password)
+                        .executeUpdate();
+            });
         }catch(Exception e){
             throw new RuntimeException(e.getMessage());
         }
@@ -64,7 +59,12 @@ public class AccountTest {
     @Test
     void testSignUp(){
         RegisterCommand registerCommand = new RegisterCommand("testuser@test.gr","pass1234","FREE");
-        assertDoesNotThrow(()->registerService.registerUser(registerCommand));
+        registerService.registerUser(registerCommand);
+        sessionFactory.inTransaction(session -> {
+            UserEntity user = session.get(UserEntity.class,2);
+            assertEquals("testuser@test.gr",user.getUsername());
+        });
+
     }
 
     @Test

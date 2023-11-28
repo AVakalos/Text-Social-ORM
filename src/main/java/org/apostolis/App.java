@@ -10,7 +10,6 @@ import jakarta.validation.ConstraintViolationException;
 import org.apostolis.comments.adapter.in.web.CreateCommentController;
 import org.apostolis.comments.adapter.in.web.ViewCommentsController;
 import org.apostolis.comments.domain.CommentCreationException;
-import org.apostolis.common.HibernateUtil;
 import org.apostolis.exception.AuthenticationException;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.exception.InvalidTokenException;
@@ -21,22 +20,24 @@ import org.apostolis.posts.domain.PostCreationException;
 import org.apostolis.users.adapter.in.web.AccountController;
 import org.apostolis.users.adapter.in.web.FollowsController;
 import org.apostolis.users.adapter.in.web.GetFollowsController;
+import org.apostolis.users.adapter.out.persistence.UserId;
 
 
 public class App 
 {
-    public static ThreadLocal<Long> currentUserId = new ThreadLocal<>();
+    public static ThreadLocal<UserId> currentUserId = new ThreadLocal<>();
+
     public static void main( String[] args )
     {
+        // Loading components from AppConfig
         AppConfig appConfig = new AppConfig("production");
-        HibernateUtil.initializeSessionFactory();
 
-        AccountController accountController = appConfig.getUserController();
+        AccountController accountController = appConfig.getAccountController();
         FollowsController followsController = appConfig.getFollowsController();
         GetFollowsController getFollowsController = appConfig.getGetFollowsController();
         CreatePostController createPostController = appConfig.getCreatePostController();
         CreateCommentController createCommentController = appConfig.getCreateCommentController();
-        ViewPostsController viewPostsController = appConfig.getPostViewsController();
+        ViewPostsController viewPostsController = appConfig.getViewPostsController();
         ViewCommentsController viewCommentsController = appConfig.getViewCommentsController();
         ManageLinkController manageLinkController = appConfig.getManageLinkController();
 
@@ -62,6 +63,8 @@ public class App
         app.exception(JsonMappingException.class,
                 (e, ctx)->{throw new BadRequestResponse("Text contains illegal characters");});
 
+
+        // Url Mapping
         app.post("/signup", accountController::signup);
         app.post("/signin", accountController::login);
 
@@ -81,13 +84,5 @@ public class App
         app.get("api/user/tofollow",getFollowsController::getUsersToFollow);
 
         app.get("<url>",manageLinkController::decodeLink);
-
-
-        //PostRepositoryImpl postRepository = new PostRepositoryImpl(appConfig.getDbUtils(), followsRepository);
-       // CommentRepository commentRepository = new CommentRepositoryImpl(appConfig.getDbUtils());
-
-        //ArrayList<Integer> ids = new ArrayList<>(List.of(1,2,3));
-        //System.out.println(postRepository.getPostsGivenUsersIds(ids,0,4));
-        //System.out.println(commentRepository.getLatestCommentsGivenPostIds(ids));
     }
 }

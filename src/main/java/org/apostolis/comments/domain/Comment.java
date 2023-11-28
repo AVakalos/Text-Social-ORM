@@ -1,17 +1,18 @@
 package org.apostolis.comments.domain;
 
 import org.apostolis.AppConfig;
+import org.apostolis.users.adapter.out.persistence.UserId;
 
 import java.time.LocalDateTime;
 
 public record Comment(
-        long user,
+        UserId user,
         long post,
         String text,
         LocalDateTime createdAt
 ){
 
-    public Comment(long user, long post, String text) {
-        this(user,post,text,LocalDateTime.now(AppConfig.clock));
+    public Comment(UserId user, long post, String text) {
+        this(user,post,text,LocalDateTime.now(AppConfig.getClock()));
     }
 }

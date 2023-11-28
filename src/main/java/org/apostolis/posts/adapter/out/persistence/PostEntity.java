@@ -1,7 +1,6 @@
 package org.apostolis.posts.adapter.out.persistence;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apostolis.comments.adapter.out.persistence.CommentEntity;
@@ -22,7 +21,8 @@ import java.util.Set;
 public class PostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    long post_id;
+    @Column(updatable = false, nullable = false)
+    Long post_id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="user_id")
@@ -53,16 +53,6 @@ public class PostEntity {
 
     public void setUser(UserEntity creator){
         user = creator;
-    }
-
-    public void addComment(CommentEntity comment){
-        post_comments.add(comment);
-        comment.setPost(this);
-    }
-
-    public void removeComment(CommentEntity comment){
-        post_comments.remove(comment);
-        comment.setPost(null);
     }
 
 }

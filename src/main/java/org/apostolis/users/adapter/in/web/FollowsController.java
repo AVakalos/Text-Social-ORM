@@ -23,13 +23,13 @@ public class FollowsController{
     public void follow(Context ctx){
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
-        int follows;
+        Long follows;
         try{
-            follows = ctx.queryParamAsClass("follows", Integer.class).get();
+            follows = ctx.queryParamAsClass("follows", Long.class).get();
         }catch(Exception k){
             throw new BadRequestResponse("follows query parameter must be an integer");
         }
-        FollowsCommand followsCommand = new FollowsCommand(App.currentUserId.get(),follows);
+        FollowsCommand followsCommand = new FollowsCommand(App.currentUserId.get().getUser_id(),follows);
         followsUseCase.followUser(followsCommand);
         ctx.result("User: "+user+ " followed user: "+follows);
     }
@@ -37,13 +37,13 @@ public class FollowsController{
     public void unfollow(Context ctx){
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
-        int unfollows;
+        Long unfollows;
         try{
-            unfollows = ctx.queryParamAsClass("unfollows", Integer.class).get();
+            unfollows = ctx.queryParamAsClass("unfollows", Long.class).get();
         }catch(Exception k){
             throw new BadRequestResponse("unfollows query parameter must be an integer");
         }
-        FollowsCommand followsCommand = new FollowsCommand(App.currentUserId.get(),unfollows);
+        FollowsCommand followsCommand = new FollowsCommand(App.currentUserId.get().getUser_id(),unfollows);
         followsUseCase.unfollowUser(followsCommand);
         ctx.result("User: "+user+ " unfollowed user: "+unfollows);
     }

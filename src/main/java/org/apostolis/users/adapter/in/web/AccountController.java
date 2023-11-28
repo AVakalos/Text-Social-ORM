@@ -5,7 +5,9 @@ import org.apostolis.users.application.ports.in.LoginUseCase;
 import org.apostolis.users.application.ports.in.LoginCommand;
 import org.apostolis.users.application.ports.in.RegisterUseCase;
 import org.apostolis.users.application.ports.in.RegisterCommand;
-import org.apostolis.users.domain.AuthResponse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class AccountController {
 
@@ -26,7 +28,10 @@ public class AccountController {
     public void login(Context ctx) {
         LoginCommand loginCommand = ctx.bodyAsClass(LoginCommand.class);
         String token = loginUseCase.loginUser(loginCommand);
-        ctx.json(new AuthResponse(loginCommand.username(), token));
+        Map<String, Object> response = new HashMap<>();
+        response.put("username",loginCommand.username());
+        response.put("token",token);
+        ctx.json(response);
     }
 
     public void authenticate(Context ctx){

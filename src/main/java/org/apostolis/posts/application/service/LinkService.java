@@ -1,9 +1,10 @@
 package org.apostolis.posts.application.service;
 
 import org.apostolis.AppConfig;
+import org.apostolis.posts.adapter.out.persistence.PostId;
 import org.apostolis.posts.application.ports.in.*;
 import org.apostolis.posts.application.ports.out.PostRepository;
-import org.apostolis.users.adapter.out.persistence.UserEntity;
+import org.apostolis.users.adapter.out.persistence.UserId;
 
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -24,16 +25,12 @@ public class LinkService implements ManageLinkUseCase {
 
     @Override
     public String createLink(CreateLinkCommand createLinkCommand) {
-        long user = createLinkCommand.user();
-        long post = createLinkCommand.post_id();
+        Long user = createLinkCommand.user();
+        Long post = createLinkCommand.post_id();
 
-//        ArrayList<Integer> currentUser = new ArrayList<>(List.of(createLinkCommand.user()));
-//        Set<Integer> user_post_ids = postRepository.getPostsGivenUsersIds(
-//                currentUser,0,Integer.MAX_VALUE).get(user).keySet();
-
-        if(postRepository.isMyPost(user, post)){
+        if(postRepository.isMyPost(new UserId(user), new PostId(post))){
             // register the link to prevent data leaks via url manipulation
-            postRepository.registerLink(post);
+            postRepository.registerLink(new PostId(post));
         }else{
             throw new IllegalArgumentException("You cannot create shareable link for a post of another user");
         }
@@ -52,10 +49,9 @@ public class LinkService implements ManageLinkUseCase {
         String encoded = url.replace("http://"+host+":"+port+"/","");
         String decoded = URLDecoder.decode(encoded, StandardCharsets.UTF_8);
 
-        String[] splitted =  decoded.split(",");
-//        long user_id = Long.parseLong(splitted[0]);
-        long post_id = Long.parseLong(splitted[1]);
-        if(postRepository.checkLink(post_id)){
+        String[] split =  decoded.split(",");
+        long post_id = Long.parseLong(split[1]);
+        if(postRepository.checkLink(new PostId(post_id))){
             PostWithNCommentsQuery query = new PostWithNCommentsQuery(post_id,100);
             return postViewsService.getPostWithNLatestComments(query);
         }else{

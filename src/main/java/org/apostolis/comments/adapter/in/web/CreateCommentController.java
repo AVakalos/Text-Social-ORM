@@ -22,10 +22,10 @@ public class CreateCommentController {
 
     public void createComment(Context ctx){
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
-        String authlevel = tokenManager.extractRole(token);
+        String authenticationLevel = tokenManager.extractRole(token);
         CreateCommentRequest request = ctx.bodyAsClass(CreateCommentRequest.class);
         CreateCommentCommand createCommentCommand = new CreateCommentCommand(
-                App.currentUserId.get(), request.post(), request.text(), authlevel);
+                App.currentUserId.get().getUser_id(), request.post(), request.text(), authenticationLevel);
         commentService.createComment(createCommentCommand);
         ctx.result(tokenManager.extractUsername(token)+" commented on post "+request.post()+".");
     }

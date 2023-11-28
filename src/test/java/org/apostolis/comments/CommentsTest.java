@@ -2,19 +2,20 @@ package org.apostolis.comments;
 
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
+import org.apostolis.comments.adapter.out.persistence.CommentId;
 import org.apostolis.comments.application.ports.in.CommentsViewsUseCase;
 import org.apostolis.comments.application.ports.in.CreateCommentCommand;
 import org.apostolis.comments.application.ports.in.CreateCommentUseCase;
 import org.apostolis.comments.application.ports.in.ViewCommentsQuery;
 import org.apostolis.comments.domain.CommentCreationException;
-import org.apostolis.common.DbUtils;
+import org.apostolis.comments.domain.CommentDTO;
 import org.apostolis.common.PageRequest;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.apostolis.posts.adapter.out.persistence.PostId;
+import org.apostolis.users.adapter.out.persistence.UserId;
+import org.hibernate.SessionFactory;
+import org.hibernate.query.MutationQuery;
+import org.junit.jupiter.api.*;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -24,7 +25,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CommentsTest {
-    static DbUtils dbUtils;
+    static SessionFactory sessionFactory;
     static CreateCommentUseCase commentService;
     static CommentsViewsUseCase commentsViewsService;
     private static final AppConfig appConfig = TestSuite.appConfig;
@@ -32,42 +33,40 @@ public class CommentsTest {
     @BeforeAll
     static void startDb(){
         TestSuite.initialDbSetup();
-        dbUtils = appConfig.getDbUtils();
+        sessionFactory = TestSuite.getSessionFactory();
         commentService = appConfig.getCommentService();
         commentsViewsService = appConfig.getCommentsViewService();
 
-        DbUtils.ThrowingConsumer<Connection, Exception> setup_database = (connection) -> {
-            try (PreparedStatement clean_stm = connection.prepareStatement(
-                    "TRUNCATE TABLE users, posts, followers RESTART IDENTITY CASCADE")) {
-                clean_stm.executeUpdate();
-            }
-            String insert_users = "INSERT INTO users (username,password,role) VALUES" +
-                    "('user1','pass','FREE')," +
-                    "('user2','pass','PREMIUM')," +
-                    "('user3','pass','FREE')";
-            try (PreparedStatement insert_users_stm = connection.prepareStatement(insert_users)) {
-                insert_users_stm.executeUpdate();
-            }
-            String insert_posts = "INSERT INTO posts (user_id, text, created) VALUES " +
-                    "(1,'post1 from user1',?)," +
-                    "(1,'post2 from user1',?)," +
-                    "(2,'post1 from user2',?)," +
-                    "(3,'post1 from user3',?)";
-            try (PreparedStatement insert_posts_stm = connection.prepareStatement(insert_posts)) {
-                for (int i = 1; i <= 4; i++) {
-                    insert_posts_stm.setTimestamp(i, Timestamp.valueOf(
-                            LocalDateTime.now(AppConfig.clock).plusSeconds(i * 30)));
-                }
-                insert_posts_stm.executeUpdate();
-            }
-            // Populate followers table
-            String insert_follows = "INSERT INTO followers VALUES(2,1),(3,1),(1,2),(2,3)";
-            try(PreparedStatement insert_follows_stm = connection.prepareStatement(insert_follows)){
-                insert_follows_stm.executeUpdate();
-            }
-        };
         try {
-            dbUtils.doInTransaction(setup_database);
+            sessionFactory.inTransaction(session -> {
+                String truncate_tables = "TRUNCATE TABLE users, posts, followers RESTART IDENTITY CASCADE";
+                session.createNativeMutationQuery(truncate_tables).executeUpdate();
+
+                String insert_users = """
+                        INSERT INTO users (username,password,role) VALUES
+                        ('user1','pass','FREE'),
+                        ('user2','pass','PREMIUM'),
+                        ('user3','pass','FREE')""";
+                session.createNativeMutationQuery(insert_users).executeUpdate();
+
+                String insert_posts = """
+                        INSERT INTO posts (user_id, text, isshared, createdat) VALUES
+                        (1,'post1 from user1',false,?1),
+                        (1,'post2 from user1',false,?2),
+                        (2,'post1 from user2',false,?3),
+                        (3,'post1 from user3',false,?4)""";
+
+                MutationQuery posts_query = session.createNativeMutationQuery(insert_posts);
+                for (int i = 1; i <= 4; i++) {
+                    posts_query.setParameter(i, Timestamp.valueOf(
+                            LocalDateTime.now(AppConfig.getClock()).plusSeconds(i * 30)));
+                }
+                posts_query.executeUpdate();
+
+                // Populate followers table
+                String insert_follows = "INSERT INTO followers VALUES(2,1),(3,1),(1,2),(2,3)";
+                session.createNativeMutationQuery(insert_follows).executeUpdate();
+            });
         }catch(Exception e){
             throw new RuntimeException(e.getMessage());
         }
@@ -75,29 +74,27 @@ public class CommentsTest {
 
     @BeforeEach
     void intermediateSetupDatabase(){
-        DbUtils.ThrowingConsumer<Connection, Exception> intermediate_setup_database = (connection) -> {
-            try (PreparedStatement clean_stm = connection.prepareStatement(
-                    "TRUNCATE TABLE comments RESTART IDENTITY CASCADE")) {
-                clean_stm.executeUpdate();
-            }
-
-            String insert_comments = "INSERT INTO comments (post_id,user_id,text,created) VALUES" +
-                    "(1,2,'com1 from user2',?)," +
-                    "(2,1,'com1 from user1',?)," +
-                    "(3,1,'com1 from user1',?)," +
-                    "(1,3,'com2 from user3',?),"+
-                    "(2,2,'com2 from user2',?),"+
-                    "(2,3,'com3 from user3',?)";
-            try(PreparedStatement insert_comments_stm = connection.prepareStatement(insert_comments)){
-                for(int i=1; i<=6; i++){
-                    insert_comments_stm.setTimestamp(i, Timestamp.valueOf(
-                            LocalDateTime.now(AppConfig.clock).plusSeconds(120 + i*30)));
-                }
-                insert_comments_stm.executeUpdate();
-            }
-        };
         try {
-            dbUtils.doInTransaction(intermediate_setup_database);
+            sessionFactory.inTransaction(session -> {
+                String truncate_tables = "TRUNCATE TABLE comments RESTART IDENTITY CASCADE";
+                session.createNativeMutationQuery(truncate_tables).executeUpdate();
+
+                String insert_comments = """
+                        INSERT INTO comments (post_id,user_id,text,createdat) VALUES
+                        (1,2,'com1 from user2',?1),
+                        (2,1,'com1 from user1',?2),
+                        (3,1,'com1 from user1',?3),
+                        (1,3,'com2 from user3',?4),
+                        (2,2,'com2 from user2',?5),
+                        (2,3,'com3 from user3',?6)""";
+
+                MutationQuery comments_query = session.createNativeMutationQuery(insert_comments);
+                for(int i=1; i<=6; i++){
+                    comments_query.setParameter(i, Timestamp.valueOf(
+                            LocalDateTime.now(AppConfig.getClock()).plusSeconds(120 + i*30)), Timestamp.class);
+                }
+                comments_query.executeUpdate();
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -105,15 +102,15 @@ public class CommentsTest {
 
     @Test
     void commentFromFreeUser(){
-        CreateCommentCommand createCommentCommand = new CreateCommentCommand(1,1,"first comment","FREE");
+        CreateCommentCommand createCommentCommand = new CreateCommentCommand(1L,1L,"first comment","FREE");
         assertDoesNotThrow(()->commentService.createComment(createCommentCommand));
     }
 
     @Test
     void commentFromFreeUserExceedLimit(){
-        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(1,1,"comment1","FREE");
-        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(1,1,"comment2","FREE");
-        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(1,1,"comment3","FREE");
+        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(1L,1L,"comment1","FREE");
+        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(1L,1L,"comment2","FREE");
+        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(1L,1L,"comment3","FREE");
 
         assertThrows(CommentCreationException.class, () -> {
             commentService.createComment(createCommentCommand1);
@@ -124,9 +121,9 @@ public class CommentsTest {
 
     @Test
     void commentFromPremiumUser(){
-        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(2,1,"comment1","PREMIUM");
-        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(2,1,"comment2","PREMIUM");
-        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(2,1,"comment3","PREMIUM");
+        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(2L,1L,"comment1","PREMIUM");
+        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(2L,1L,"comment2","PREMIUM");
+        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(2L,1L,"comment3","PREMIUM");
 
         assertDoesNotThrow(() -> {
             commentService.createComment(createCommentCommand1);
@@ -137,11 +134,12 @@ public class CommentsTest {
 
     @Test
     void getAllCommentsOnOwnPosts(){
-        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(1,new PageRequest(0,Integer.MAX_VALUE));
-        Map<Long, List<Object>> result = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
+        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(
+                new UserId(1L),new PageRequest(0,Integer.MAX_VALUE));
+        Map<PostId, List<Object>> result = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
 
-        HashMap<Integer, String> post1_comments = (HashMap)result.get(2).get(1);
-        HashMap<Integer, String> post2_comments = (HashMap)result.get(1).get(1);
+        Map<CommentId, CommentDTO> post1_comments = (HashMap)result.get(new PostId(2L)).get(1);
+        Map<CommentId, CommentDTO> post2_comments = (HashMap)result.get(new PostId(1L)).get(1);
 
         assertEquals(2,result.size());
         assertEquals(5,post1_comments.size()+post2_comments.size());
@@ -149,9 +147,16 @@ public class CommentsTest {
 
     @Test
     void getLatestCommentsOnOwnOrFollowersPosts(){
-        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(2,new PageRequest(0,Integer.MAX_VALUE));
-        Map<Long, HashMap<Long,List<Object>>> result =
+        ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(
+                new UserId(2L),new PageRequest(0,Integer.MAX_VALUE));
+
+        Map<UserId, Map<PostId,List<Object>>> result =
                 commentsViewsService.getLatestCommentsOnOwnOrFollowingPosts(viewCommentsQuery);
-        assertEquals(4,result.get(1).size() + result.get(3).size() + result.get(2).size());
+
+        int total_size_of_posts = result.get(new UserId(1L)).size() +
+                                  result.get(new UserId(3L)).size() +
+                                  result.get(new UserId(2L)).size();
+
+        assertEquals(4,total_size_of_posts);
     }
 }

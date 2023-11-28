@@ -1,13 +1,11 @@
 package org.apostolis.comments.application.ports.in;
 
-import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.HashMap;
+import org.apostolis.posts.adapter.out.persistence.PostId;
+import org.apostolis.users.adapter.out.persistence.UserId;
 import java.util.List;
 import java.util.Map;
 
 public interface CommentsViewsUseCase {
-    Map<Long, List<Object>> getCommentsOnOwnPosts(ViewCommentsQuery viewCommentsQuery);
-    Map<Long, HashMap<Long,List<Object>>> getLatestCommentsOnOwnOrFollowingPosts(ViewCommentsQuery viewCommentsQuery);
+    Map<PostId, List<Object>> getCommentsOnOwnPosts(ViewCommentsQuery viewCommentsQuery);
+    Map<UserId, Map<PostId,List<Object>>> getLatestCommentsOnOwnOrFollowingPosts(ViewCommentsQuery viewCommentsQuery);
 }

@@ -4,11 +4,11 @@ import jakarta.validation.constraints.Positive;
 import org.apostolis.common.validation.SelfValidating;
 
 public record CreateLinkCommand(
-        long user,
+        Long user,
         @Positive
-        int post_id) implements SelfValidating<CreateLinkCommand> {
+        Long post_id) implements SelfValidating<CreateLinkCommand> {
 
-    public CreateLinkCommand(long user, int post_id){
+    public CreateLinkCommand(Long user, Long post_id){
         this.user = user;
         this.post_id = post_id;
         this.selfValidate();

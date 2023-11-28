@@ -1,7 +1,6 @@
 package org.apostolis.users.adapter.out.persistence;
 
 import jakarta.persistence.*;
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
@@ -18,6 +17,7 @@ import java.util.Set;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(updatable = false, nullable = false)
     private Long user_id;
 
     @Column(unique = true, nullable = false)
@@ -67,17 +67,4 @@ public class UserEntity {
         }
         to_unfollow.followers.remove(this);
     }
-
-
-
-    public void addPost(PostEntity post){
-        user_posts.add(post);
-        post.setUser(this);
-    }
-
-    public void removePost(PostEntity post){
-        user_posts.remove(post);
-        post.setUser(null);
-    }
-
 }

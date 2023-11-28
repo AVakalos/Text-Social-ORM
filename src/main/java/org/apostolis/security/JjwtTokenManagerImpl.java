@@ -36,8 +36,8 @@ public class JjwtTokenManagerImpl implements TokenManager{
         return Jwts.builder()
                 .setSubject(username)
                 .claim("Role",role)
-                .setIssuedAt(Date.from(Instant.now(AppConfig.clock)))
-                .setExpiration(Date.from(Instant.now(AppConfig.clock).plusSeconds(60*EXPIRE_AFTER_MINS)))
+                .setIssuedAt(Date.from(Instant.now(AppConfig.getClock())))
+                .setExpiration(Date.from(Instant.now(AppConfig.getClock()).plusSeconds(60*EXPIRE_AFTER_MINS)))
                 .signWith(key)
                 .compact();
     }

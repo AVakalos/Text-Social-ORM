@@ -1,27 +1,21 @@
 package org.apostolis.users.adapter.out.persistence;
 
 import jakarta.persistence.NoResultException;
-import org.apostolis.common.DbUtils;
-import org.apostolis.common.HibernateUtil;
+import org.apostolis.AppConfig;
 import org.apostolis.exception.DatabaseException;
-import org.apostolis.security.PasswordEncoder;
-import org.apostolis.users.application.ports.in.RegisterCommand;
 import org.apostolis.users.application.ports.out.UserRepository;
 import org.apostolis.users.domain.User;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 
 public class UserRepositoryImpl implements UserRepository {
     private static final Logger logger = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
     @Override
     public void save(User user) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         sessionFactory.inTransaction(session ->
             session.persist(new UserEntity(user.username(),user.password(),user.role()))
         );
@@ -30,32 +24,53 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User getByUsername(String username) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-        UserEntity user;
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         try {
-            user = sessionFactory.fromTransaction(session ->
-                    session.createSelectionQuery("from UserEntity where username = :username ", UserEntity.class)
-                            .setParameter("username", username)
-                            .getSingleResult());
+            return sessionFactory.fromTransaction(session -> {
+                String query = "select username, password, role from UserEntity where username = :username";
+                return session.createSelectionQuery(query, User.class)
+                        .setParameter("username", username)
+                        .getSingleResult();
+            });
         }catch(NoResultException e){
+            logger.info("User: "+username+" is not already stored in the database.");
             return null;
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not retrieve User by username",e);
         }
-        return new User(user.getUsername(), user.getPassword(),user.getRole());
     }
 
     @Override
-    public long getUserIdFromUsername(String username) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-        UserEntity user = sessionFactory.fromTransaction(session ->
-                session.createSelectionQuery("from UserEntity where username = :username ", UserEntity.class)
-                .setParameter("username", username).getSingleResult());
-        return user.getUser_id();
+    public UserId getUserIdFromUsername(String username) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
+        try {
+            return sessionFactory.fromTransaction(session -> {
+                String query = "select user_id from UserEntity where username = :username";
+                Long user_id = session.createSelectionQuery(query, Long.class)
+                        .setParameter("username", username)
+                        .getSingleResult();
+                return new UserId(user_id);
+            });
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not retrieve user id by username",e);
+        }
     }
 
     @Override
-    public String getUsernameFromId(long userId) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
-        UserEntity user = sessionFactory.fromTransaction(session -> session.get(UserEntity.class,userId));
-        return user.getUsername();
+    public String getUsernameFromId(UserId userId) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
+        try {
+            return sessionFactory.fromTransaction(session -> {
+                String query = "select username from UserEntity where user_id = :userId";
+                return session.createSelectionQuery(query, String.class)
+                        .setParameter("userId", userId.getUser_id())
+                        .getSingleResult();
+            });
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not retrieve username by id",e);
+        }
     }
 }

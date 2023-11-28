@@ -2,23 +2,23 @@ package org.apostolis.users;
 
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
-import org.apostolis.common.DbUtils;
+import org.apostolis.users.adapter.out.persistence.UserId;
 import org.apostolis.users.application.ports.in.FollowsCommand;
 import org.apostolis.users.application.ports.in.FollowsUseCase;
 import org.apostolis.users.application.ports.in.GetFollowersAndUsersToFollowUseCase;
+import org.apostolis.users.domain.UserDTO;
+import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FollowsTest {
-    static DbUtils dbUtils;
+    static SessionFactory sessionFactory;
     static FollowsUseCase followsService;
     static GetFollowersAndUsersToFollowUseCase getFollowsService;
     private static final AppConfig appConfig = TestSuite.appConfig;
@@ -26,31 +26,22 @@ public class FollowsTest {
     @BeforeAll
     static void setupDb(){
         TestSuite.initialDbSetup();
-        dbUtils = appConfig.getDbUtils();
+        sessionFactory = TestSuite.getSessionFactory();
         followsService = appConfig.getFollowsService();
         getFollowsService = appConfig.getGetFollowsService();
 
-        DbUtils.ThrowingConsumer<Connection, Exception> setup_database = (connection) -> {
-            try(PreparedStatement clean_stm = connection.prepareStatement(
-                    "TRUNCATE TABLE users,comments, posts, followers RESTART IDENTITY CASCADE")){
-                clean_stm.executeUpdate();
-            }
-            // register users
-            String insert_user1 = "INSERT INTO users (username,password,role) VALUES('1','pass','FREE')";
-            String insert_user_2 = "INSERT INTO users (username,password,role) VALUES('2','pass','PREMIUM')";
-            String insert_user_3 = "INSERT INTO users (username,password,role) VALUES('3','pass','PREMIUM')";
-
-            try(PreparedStatement insert_user_1_stm = connection.prepareStatement(insert_user1);
-                PreparedStatement insert_user_2_stm = connection.prepareStatement(insert_user_2);
-                PreparedStatement insert_user_3_stm = connection.prepareStatement(insert_user_3)){
-                insert_user_1_stm.executeUpdate();
-                insert_user_2_stm.executeUpdate();
-                insert_user_3_stm.executeUpdate();
-            }
-        };
         try {
-            // initial clean for any possible garbage data
-            dbUtils.doInTransaction(setup_database);
+            sessionFactory.inTransaction(session -> {
+                String truncate_tables = "TRUNCATE TABLE users,comments, posts, followers RESTART IDENTITY CASCADE";
+                session.createNativeMutationQuery(truncate_tables).executeUpdate();
+                // register users
+                String insert_user1 = "INSERT INTO users (username,password,role) VALUES('1','pass','FREE')";
+                String insert_user_2 = "INSERT INTO users (username,password,role) VALUES('2','pass','PREMIUM')";
+                String insert_user_3 = "INSERT INTO users (username,password,role) VALUES('3','pass','PREMIUM')";
+                session.createNativeMutationQuery(insert_user1).executeUpdate();
+                session.createNativeMutationQuery(insert_user_2).executeUpdate();
+                session.createNativeMutationQuery(insert_user_3).executeUpdate();
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -58,17 +49,13 @@ public class FollowsTest {
 
     @BeforeEach
     void intermediateSetupDatabase() {
-        DbUtils.ThrowingConsumer<Connection, Exception> intermediate_setup_database = (connection) -> {
-            String clean_query = "TRUNCATE TABLE followers RESTART IDENTITY CASCADE";
-            String insert_query = "INSERT INTO followers VALUES(2,1),(3,1),(1,2),(2,3)";
-            try(PreparedStatement clean_followers = connection.prepareStatement(clean_query);
-                PreparedStatement add_follow_stm = connection.prepareStatement(insert_query)){
-                clean_followers.executeUpdate();
-                add_follow_stm.executeUpdate();
-            }
-        };
         try{
-            dbUtils.doInTransaction(intermediate_setup_database);
+            sessionFactory.inTransaction(session -> {
+                String clean_query = "TRUNCATE TABLE followers RESTART IDENTITY CASCADE";
+                String insert_query = "INSERT INTO followers VALUES(2,1),(3,1),(1,2),(2,3)";
+                session.createNativeMutationQuery(clean_query).executeUpdate();
+                session.createNativeMutationQuery(insert_query).executeUpdate();
+            });
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -76,35 +63,39 @@ public class FollowsTest {
 
     @Test
     void follow(){
-        assertDoesNotThrow(() -> followsService.followUser(new FollowsCommand(1,3)));
+        assertDoesNotThrow(() -> followsService.followUser(new FollowsCommand(1L,3L)));
     }
 
     @Test
     void followYourselfNotAllowed(){
         assertThrows(IllegalArgumentException.class,
-                () -> followsService.followUser(new FollowsCommand(1,1)));
+                () -> followsService.followUser(new FollowsCommand(1L,1L)));
     }
 
     @Test
     void unfollow(){
-        assertDoesNotThrow(() -> followsService.unfollowUser(new FollowsCommand(1,2)));
+        assertDoesNotThrow(() -> followsService.unfollowUser(new FollowsCommand(1L,2L)));
     }
 
     @Test
     void getFollowers(){
-        HashMap<Long, String> results = getFollowsService.getFollowers(1,0,Integer.MAX_VALUE);
+        Map<UserId, UserDTO> results = getFollowsService.getFollowers(
+                new UserId(1L),0,Integer.MAX_VALUE);
         assertEquals(2,results.size());
     }
 
     @Test
     void getUsersToFollowAvailable(){
-        HashMap<Long, String> results = getFollowsService.getUsersToFollow(3,0,Integer.MAX_VALUE);
+        Map<UserId, UserDTO> results = getFollowsService.getUsersToFollow(
+                new UserId(3L),0,Integer.MAX_VALUE);
         assertEquals(1,results.size());
     }
 
     @Test
     void getUsersToFollowNoAvailable(){
-        HashMap<Long, String> results = getFollowsService.getUsersToFollow(2,0,Integer.MAX_VALUE);
+        Map<UserId, UserDTO> results = getFollowsService.getUsersToFollow(
+                new UserId(2L),0,Integer.MAX_VALUE);
+        System.out.println(results);
         assertEquals(0,results.size());
     }
 }

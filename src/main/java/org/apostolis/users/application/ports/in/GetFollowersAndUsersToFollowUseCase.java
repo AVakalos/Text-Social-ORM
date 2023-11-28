@@ -1,9 +1,10 @@
 package org.apostolis.users.application.ports.in;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.users.domain.UserDTO;
+import java.util.Map;
 
 public interface GetFollowersAndUsersToFollowUseCase {
-    HashMap<Long, String> getFollowers(long userId, int pageNum, int pageSize);
-    HashMap<Long, String> getUsersToFollow(long userId, int pageNum, int pageSize);
+    Map<UserId, UserDTO> getFollowers(UserId userId, int pageNum, int pageSize);
+    Map<UserId, UserDTO> getUsersToFollow(UserId userId, int pageNum, int pageSize);
 }

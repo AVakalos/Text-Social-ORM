@@ -18,24 +18,24 @@ public class ViewCommentsController {
     }
 
     public void getCommentsOnOwnPosts(Context ctx){
-        int pageNum;
-        int pageSize;
-        try{
-            pageNum = ctx.queryParamAsClass("page", Integer.class).get();
-            pageSize = ctx.queryParamAsClass("size", Integer.class).get();
-        }catch (Exception e){
-            throw new IllegalArgumentException("page and size must be positive integers");
-        }
-        ViewCommentsQuery viewsQuery = new ViewCommentsQuery(App.currentUserId.get(),new PageRequest(pageNum, pageSize));
-
+        ViewCommentsQuery viewsQuery = createQueryFromRequest(ctx);
         Map<String, Object> response = new HashMap<>();
         response.put("data",commentsViewService.getCommentsOnOwnPosts(viewsQuery));
-        response.put("current_page",pageNum);
-        response.put("page_size",pageSize);
+        response.put("current_page",viewsQuery.pageRequest().pageNumber());
+        response.put("page_size",viewsQuery.pageRequest().pageSize());
         ctx.json(response);
     }
 
     public void getLatestCommentsOnOwnOrFollowingPosts(Context ctx){
+        ViewCommentsQuery viewsQuery = createQueryFromRequest(ctx);
+        Map<String, Object> response = new HashMap<>();
+        response.put("data",commentsViewService.getLatestCommentsOnOwnOrFollowingPosts(viewsQuery));
+        response.put("current_page",viewsQuery.pageRequest().pageNumber());
+        response.put("page_size",viewsQuery.pageRequest().pageSize());
+        ctx.json(response);
+    }
+
+    private ViewCommentsQuery createQueryFromRequest(Context ctx){
         int pageNum;
         int pageSize;
         try{
@@ -44,11 +44,8 @@ public class ViewCommentsController {
         }catch (Exception e){
             throw new IllegalArgumentException("page and size must be positive integers");
         }
-        ViewCommentsQuery viewsQuery = new ViewCommentsQuery(App.currentUserId.get(),new PageRequest(pageNum, pageSize));
-        Map<String, Object> response = new HashMap<>();
-        response.put("data",commentsViewService.getLatestCommentsOnOwnOrFollowingPosts(viewsQuery));
-        response.put("current_page",pageNum);
-        response.put("page_size",pageSize);
-        ctx.json(response);
+        return new ViewCommentsQuery(App.currentUserId.get(),new PageRequest(pageNum, pageSize));
     }
+
+
 }

@@ -33,7 +33,8 @@ public class HibernateUtil {
     public static void initializeSessionFactory(){
         if (sessionFactory == null) {
             StandardServiceRegistry standardRegistry = new StandardServiceRegistryBuilder()
-                    .applySetting(Environment.DATASOURCE, getDataSource()).build();
+                    .applySetting(Environment.DATASOURCE, getDataSource())
+                    .build();
 
             Metadata metadata = new MetadataSources(standardRegistry)
                     .addAnnotatedClass(UserEntity.class)
@@ -49,12 +50,11 @@ public class HibernateUtil {
     }
 
     public static SessionFactory getSessionFactory(){
-        if(sessionFactory!=null){
-            return sessionFactory;
-        }else{
+        if (sessionFactory == null) {
             logger.error("Session Factory is null");
-            throw new NullPointerException("Session Factory is null");
+            initializeSessionFactory();
         }
+        return sessionFactory;
     }
 
     private static DataSource getDataSource() {

@@ -2,16 +2,15 @@ package org.apostolis.users.application.ports.out;
 
 import org.apostolis.common.PageRequest;
 import org.apostolis.exception.DatabaseException;
-import org.apostolis.users.domain.UserInfo;
-
-import java.util.HashMap;
-import java.util.List;
+import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.users.domain.UserDTO;
+import java.util.Map;
 
 public interface FollowsRepository {
-    void saveFollow(long user, long userToFollow) throws DatabaseException;
-    void deleteFollow(long user, long userToUnfollow) throws DatabaseException;
+    void saveFollow(UserId user, UserId userToFollow) throws DatabaseException;
+    void deleteFollow(UserId user, UserId userToUnfollow) throws DatabaseException;
 
-    HashMap<Long, String> getFollowers(long user, PageRequest req) throws DatabaseException;
-    HashMap<Long, String> getFollowing(long user, PageRequest req) throws DatabaseException;
-    List<UserInfo> getUsersToFollow(long user, PageRequest req) throws DatabaseException;
+    Map<UserId, UserDTO> getFollowers(UserId user, PageRequest req) throws DatabaseException;
+    Map<UserId, UserDTO> getFollowing(UserId user, PageRequest req) throws DatabaseException;
+    Map<UserId, UserDTO> getUsersToFollow(UserId user, PageRequest req) throws DatabaseException;
 }

@@ -1,13 +1,14 @@
 package org.apostolis.posts.adapter.out.persistence;
 
-import org.apostolis.common.DbUtils;
-import org.apostolis.common.HibernateUtil;
+import jakarta.persistence.Tuple;
+import org.apostolis.AppConfig;
 import org.apostolis.common.PageRequest;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.posts.domain.Post;
-import org.apostolis.posts.domain.PostInfo;
+import org.apostolis.posts.domain.PostDTO;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
+import org.apostolis.users.adapter.out.persistence.UserId;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,26 +21,29 @@ public class PostRepositoryImpl implements PostRepository {
 
     @Override
     public void savePost(Post postToSave) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         sessionFactory.inTransaction((session -> {
-            UserEntity postCreator = session.getReference(UserEntity.class, postToSave.user());
+            UserEntity postCreator = session.getReference(UserEntity.class, postToSave.user().getUser_id());
             session.persist(new PostEntity(postCreator, postToSave.text(),postToSave.createdAt()));
         }));
     }
 
     @Override
-    public PostInfo getPostById(long post) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+    public Map<PostId,PostDTO> getPostById(PostId post_id) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         try{
             return sessionFactory.fromTransaction(session -> {
                 String postsQuery = """
-                        select new org.apostolis.posts.domain.PostInfo(user.user_id, post_id, text)
+                        select post_id as pid, text as p_text
                         from PostEntity
                         where post_id = :post""";
 
-                return session.createSelectionQuery(postsQuery, PostInfo.class)
-                        .setParameter("post",post)
+                Tuple post = session.createSelectionQuery(postsQuery, Tuple.class)
+                        .setParameter("post",post_id.getPost_id())
                         .getSingleResult();
+                Map<PostId, PostDTO> postDTOHashMap = new HashMap<>();
+                postDTOHashMap.put(new PostId((Long)post.get("pid")),new PostDTO((String)post.get("p_text")));
+                return postDTOHashMap;
             });
         }catch(Exception e){
             logger.error(e.getMessage());
@@ -47,38 +51,37 @@ public class PostRepositoryImpl implements PostRepository {
         }
     }
 
-
     @Override
-    public HashMap<Long, HashMap<Long, String>> getPostsGivenUsersIds(List<Long> user_ids, PageRequest req) {
+    public Map<UserId,Map<PostId,PostDTO>> getPostsGivenUsersIds(List<UserId> user_ids, PageRequest req) {
 
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         try {
+            List<Long> numeric_ids = new ArrayList<>();
+            for(UserId id: user_ids){
+                numeric_ids.add(id.getUser_id());
+            }
             return sessionFactory.fromTransaction(session -> {
-                String postsQuery = new StringBuilder("""
-                        select user.user_id, post_id, text
+                String postsQuery = """
+                        select user.user_id as uid, post_id as pid, text as p_text
                         from PostEntity
                         where user.user_id in(:user_ids)
-                        order by createdAt DESC""").toString();
+                        order by createdAt DESC""";
 
-                List<Object[]> query_results = session.createQuery(postsQuery, Object[].class)
-                        .setParameter("user_ids", user_ids)
+                List<Tuple> post_tuples = session.createSelectionQuery(postsQuery, Tuple.class)
+                        .setParameter("user_ids", numeric_ids)
                         .setFirstResult(req.pageNumber() * req.pageSize())
                         .setMaxResults(req.pageSize())
                         .getResultList();
 
-                HashMap<Long, HashMap<Long, String>> results = new LinkedHashMap<>();
-//                for(PostInfo post: query_results){
-//                    System.out.println(post.text());
-//                }
+                Map<UserId, Map<PostId, PostDTO>> results = new LinkedHashMap<>();
 
-                for (var post : query_results) {
-                    System.out.println(post[0] + "," + post[1] + "," + post[2]);
-                    long user_id = (Long) post[0];
-                    long post_id = (Long) post[1];
+                for (Tuple post : post_tuples) {
+                    UserId user_id = new UserId((Long) post.get("uid"));
+                    long post_id = (Long) post.get("pid");
                     if (!results.containsKey(user_id)) {
                         results.put(user_id, new LinkedHashMap<>());
                     }
-                    results.get(user_id).put(post_id, (String) post[2]);
+                    results.get(user_id).put(new PostId(post_id), new PostDTO((String) post.get("p_text")));
                 }
                 return results;
             });
@@ -88,14 +91,12 @@ public class PostRepositoryImpl implements PostRepository {
         }
     }
 
-
-
     @Override
-    public void registerLink(long post) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+    public void registerLink(PostId post_id) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         try {
             sessionFactory.inTransaction(session -> {
-                PostEntity sharedPost = session.getReference(PostEntity.class, post);
+                PostEntity sharedPost = session.getReference(PostEntity.class, post_id.getPost_id());
                 sharedPost.setShared();
                 session.merge(sharedPost);
             });
@@ -106,12 +107,14 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public boolean checkLink(long post) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+    public boolean checkLink(PostId post_id) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         try {
             return sessionFactory.fromTransaction(session -> {
-                PostEntity linkPost = session.get(PostEntity.class, post);
-                return linkPost.isShared;
+                String query = "select isShared from PostEntity where post_id= :post";
+                return session.createSelectionQuery(query, Boolean.class)
+                        .setParameter("post", post_id.getPost_id())
+                        .getSingleResult();
             });
         }catch(Exception e){
             logger.error(e.getMessage());
@@ -120,17 +123,24 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public boolean isMyPost(long user, long post) {
-        SessionFactory sessionFactory = HibernateUtil.getSessionFactory();
+    public boolean isMyPost(UserId user_id, PostId post_id) {
+        SessionFactory sessionFactory = AppConfig.getSessionFactory();
         try {
             return sessionFactory.fromTransaction(session -> {
-                UserEntity userEntity = session.get(UserEntity.class, user);
-                PostEntity sharedPost = session.getReference(PostEntity.class, post);
-                return userEntity.getUser_posts().contains(sharedPost);
+                String query = """
+                        select count(*) as exist
+                        from PostEntity
+                        where post_id = :post and user.user_id = :user""";
+
+                long exists = session.createSelectionQuery(query, Long.class)
+                        .setParameter("user", user_id.getUser_id())
+                        .setParameter("post", post_id.getPost_id())
+                        .getSingleResult();
+                return exists > 0;
             });
         }catch(Exception e){
             logger.error(e.getMessage());
-            throw new DatabaseException("Could check if post belongs to user",e);
+            throw new DatabaseException("Could not check if post belongs to user",e);
         }
     }
 }

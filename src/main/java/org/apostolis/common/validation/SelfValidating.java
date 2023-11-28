@@ -18,10 +18,4 @@ public interface SelfValidating<T> {
             throw new ConstraintViolationException(violations);
         }
     }
-
-    @JsonIgnore
-    default boolean isValid() {
-        Set<ConstraintViolation<T>> violations = factory.getValidator().validate(((T) this));
-        return violations.isEmpty();
-    }
 }

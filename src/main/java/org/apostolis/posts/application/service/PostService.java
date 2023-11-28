@@ -6,6 +6,7 @@ import org.apostolis.posts.application.ports.in.CreatePostUseCase;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.posts.domain.Post;
 import org.apostolis.posts.domain.PostCreationException;
+import org.apostolis.users.adapter.out.persistence.UserId;
 import org.apostolis.users.domain.Role;
 
 public class PostService implements CreatePostUseCase {
@@ -18,21 +19,21 @@ public class PostService implements CreatePostUseCase {
 
     @Override
     public void createPost(CreatePostCommand createPostCommand) {
-        long user = createPostCommand.user();
+        Long user = createPostCommand.user();
         String text = createPostCommand.text();
         Role role = Role.valueOf(createPostCommand.role());
 
         int post_size = text.length();
         switch (role){
             case FREE:
-                int free_post_size = AppConfig.getFreePostSize();
+                int free_post_size = AppConfig.getFREE_POST_SIZE();
                 if(post_size > free_post_size){
                     throw new PostCreationException("Free users can post texts up to "+ free_post_size +" characters."+
                             "\nYour post was "+post_size+" characters");
                 }
                 break;
             case PREMIUM:
-                int premium_post_size = AppConfig.getPremiumPostSize();
+                int premium_post_size = AppConfig.getPREMIUM_POST_SIZE();
                 if(post_size > premium_post_size){
                     throw new PostCreationException("Premium users can post texts up to "+ premium_post_size +" characters."+
                             "\nYour post was "+post_size+" characters");
@@ -41,7 +42,7 @@ public class PostService implements CreatePostUseCase {
             default:
                 break;
         }
-        Post postToSave = new Post(user, text);
+        Post postToSave = new Post(new UserId(user), text);
         postRepository.savePost(postToSave);
     }
 }

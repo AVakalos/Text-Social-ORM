@@ -1,20 +1,19 @@
 package org.apostolis.posts.application.ports.out;
 
 import org.apostolis.common.PageRequest;
-import org.apostolis.posts.application.ports.in.CreateLinkCommand;
+import org.apostolis.posts.adapter.out.persistence.PostId;
 import org.apostolis.posts.domain.Post;
-import org.apostolis.posts.domain.PostInfo;
+import org.apostolis.posts.domain.PostDTO;
+import org.apostolis.users.adapter.out.persistence.UserId;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 public interface PostRepository {
     void savePost(Post postToSave);
-    PostInfo getPostById(long post);
-    HashMap<Long, HashMap<Long, String>> getPostsGivenUsersIds(List<Long> user_ids, PageRequest req);
-    void registerLink(long post);
-    boolean checkLink(long post);
-    boolean isMyPost(long user, long post);
+    Map<PostId,PostDTO> getPostById(PostId post_id);
+    Map<UserId, Map<PostId, PostDTO>> getPostsGivenUsersIds(List<UserId> user_ids, PageRequest req);
+    void registerLink(PostId post_id);
+    boolean checkLink(PostId post_id);
+    boolean isMyPost(UserId user_id, PostId post_id);
 }

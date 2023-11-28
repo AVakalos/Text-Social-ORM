@@ -21,9 +21,10 @@ public class CreatePostController {
 
     public void createPost(Context ctx){
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
-        String authlevel = tokenManager.extractRole(token);
+        String authenticationLevel = tokenManager.extractRole(token);
         CreatePostRequest request = ctx.bodyAsClass(CreatePostRequest.class);
-        CreatePostCommand createPostCommand = new CreatePostCommand(App.currentUserId.get(), request.text(), authlevel);
+        CreatePostCommand createPostCommand = new CreatePostCommand(
+                App.currentUserId.get().getUser_id(), request.text(), authenticationLevel);
         postService.createPost(createPostCommand);
         ctx.result(tokenManager.extractUsername(token)+" did a new post.");
     }

@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class LoginService implements LoginUseCase {
-
     private final UserRepository repository;
     private final TokenManager tokenManager;
     private final PasswordEncoder passwordEncoder;

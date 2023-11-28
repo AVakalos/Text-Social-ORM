@@ -1,27 +1,26 @@
 package org.apostolis.posts.application.service;
 
+import org.apostolis.comments.adapter.out.persistence.CommentId;
 import org.apostolis.comments.application.ports.out.CommentRepository;
+import org.apostolis.comments.domain.CommentDTO;
 import org.apostolis.common.PageRequest;
+import org.apostolis.posts.adapter.out.persistence.PostId;
 import org.apostolis.posts.application.ports.in.PostViewsUseCase;
 import org.apostolis.posts.application.ports.in.PostWithNCommentsQuery;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
 import org.apostolis.posts.application.ports.in.PostViewsQuery;
-import org.apostolis.posts.domain.PostInfo;
+import org.apostolis.posts.domain.PostDTO;
+import org.apostolis.users.adapter.out.persistence.UserId;
 import org.apostolis.users.application.ports.out.FollowsRepository;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.apostolis.users.domain.UserDTO;
 
-import java.awt.*;
 import java.util.*;
 import java.util.List;
 
 public class PostViewService implements PostViewsUseCase {
     private final PostRepository postRepository;
-
     private final FollowsRepository followsRepository;
-
     private final CommentRepository commentRepository;
 
     public PostViewService(PostRepository postRepository, FollowsRepository followsRepository, CommentRepository commentRepository) {
@@ -31,60 +30,57 @@ public class PostViewService implements PostViewsUseCase {
     }
 
     @Override
-    public Map<Long,List<Object>> getFollowingPosts(PostViewsQuery postViewsQuery) {
+    public Map<UserId,List<Object>> getFollowingPosts(PostViewsQuery postViewsQuery) {
 
         // {following_person1_id: [following_person_name,{post1_id: post1_text,...}],...}
-        Map<Long,List<Object>> result = new LinkedHashMap<>();
+        Map<UserId,List<Object>> result = new LinkedHashMap<>();
 
-        HashMap<Long, String> following_users = followsRepository.getFollowing(postViewsQuery.user(),postViewsQuery.pageRequest());
+        Map<UserId, UserDTO> following_users = followsRepository.getFollowing(postViewsQuery.user(),postViewsQuery.pageRequest());
         if(following_users.isEmpty()){
             return result;
         }
-        ArrayList<Long> listOfFollowingIds = new ArrayList<>(following_users.keySet());
+        ArrayList<UserId> listOfFollowingIds = new ArrayList<>(following_users.keySet());
 
-        HashMap<Long, HashMap<Long, String>> following_posts =
+        Map<UserId, Map<PostId, PostDTO>> following_posts =
                 postRepository.getPostsGivenUsersIds(listOfFollowingIds, new PageRequest(0, Integer.MAX_VALUE));
 
         if(following_posts.isEmpty()){
             return result;
         }
 
-        for(long following_id: listOfFollowingIds){
+        for(UserId following_id: listOfFollowingIds){
             List<Object> nameAndPosts = new ArrayList<>();
             nameAndPosts.add(following_users.get(following_id));
             nameAndPosts.add(Objects.requireNonNullElse(following_posts.get(following_id), "No posts"));
             result.put(following_id, nameAndPosts);
         }
-
         return result;
     }
 
     @Override
-    public Map<Long,List<Object>> getOwnPostsWithNLatestComments(OwnPostsWithNCommentsQuery viewQuery) {
-        long user = viewQuery.user();
+    public Map<PostId,List<Object>> getOwnPostsWithNLatestComments(OwnPostsWithNCommentsQuery viewQuery) {
+        UserId user = new UserId(viewQuery.user());
 
         // {own_post_id:[post_text,{comments_id: comment,...}],...}
-        Map<Long,List<Object>> result = new LinkedHashMap<>();
+        Map<PostId,List<Object>> result = new LinkedHashMap<>();
 
-        ArrayList<Long> user_id = new ArrayList<>(List.of(user));
-        HashMap<Long, HashMap<Long, String>> posts =
+        ArrayList<UserId> user_id = new ArrayList<>(List.of(user));
+        Map<UserId, Map<PostId, PostDTO>> posts =
                 postRepository.getPostsGivenUsersIds(user_id,viewQuery.pageRequest());
         if(posts.isEmpty()){
             return result;
         }
-        HashMap<Long,String> ownPosts = posts.get(user);
+        Map<PostId,PostDTO> ownPosts = posts.get(user);
 
-        ArrayList<Long> listOfPostIds = new ArrayList<>(ownPosts.keySet());
-        HashMap<Long, HashMap<Long,String>> latest_N_comments =
+        ArrayList<PostId> listOfPostIds = new ArrayList<>(ownPosts.keySet());
+        Map<PostId,Map<CommentId, CommentDTO>> latest_N_comments =
                 commentRepository.getCommentsGivenPostIds(listOfPostIds,viewQuery.pageRequest());
 
-
-        for(long post_id: ownPosts.keySet()){
-
+        for(PostId post_id: ownPosts.keySet()){
             List<Object> postTextAndComments = new ArrayList<>();
             postTextAndComments.add(ownPosts.get(post_id));
 
-            HashMap<Long, String> commentsMap = latest_N_comments.get(post_id);
+            Map<CommentId, CommentDTO> commentsMap = latest_N_comments.get(post_id);
             postTextAndComments.add(Objects.requireNonNullElse(commentsMap, "No comments"));
             result.put(post_id,postTextAndComments);
         }
@@ -93,15 +89,14 @@ public class PostViewService implements PostViewsUseCase {
 
     @Override
     public List<Object> getPostWithNLatestComments(PostWithNCommentsQuery viewQuery) {
-        PostInfo post = postRepository.getPostById(viewQuery.post_id());
-        ArrayList<Long> id = new ArrayList<>();
-        id.add(post.post_id());
-        HashMap<Long, HashMap<Long,String>> latest_N_comments =
+        Map<PostId, PostDTO> post = postRepository.getPostById(new PostId(viewQuery.post_id()));
+        ArrayList<PostId> id = new ArrayList<>(post.keySet());
+        Map<PostId,Map<CommentId,CommentDTO>> latest_N_comments =
                 commentRepository.getCommentsGivenPostIds(id,new PageRequest(0, viewQuery.comments_num()));
 
         List<Object> postTextAndComments = new ArrayList<>();
-        postTextAndComments.add(post.text());
-        postTextAndComments.add(latest_N_comments.get(post.post_id()));
+        postTextAndComments.add(post.get(id.get(0)).text());
+        postTextAndComments.add(latest_N_comments.get(id.get(0)));
 
         return postTextAndComments;
     }

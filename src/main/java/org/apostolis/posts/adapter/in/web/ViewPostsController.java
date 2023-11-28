@@ -8,7 +8,6 @@ import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
 import org.apostolis.posts.application.ports.in.PostViewsQuery;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class ViewPostsController {
@@ -50,12 +49,10 @@ public class ViewPostsController {
             throw new IllegalArgumentException("page and size and comments must be positive integers");
         }
         OwnPostsWithNCommentsQuery viewQuery = new OwnPostsWithNCommentsQuery(
-                App.currentUserId.get(), commentsNum, new PageRequest(pageNum,pageSize));
+                App.currentUserId.get().getUser_id(), commentsNum, new PageRequest(pageNum,pageSize));
 
         Map<String, Object> response = new HashMap<>();
-        Map<Long,List<Object>> postsWithComments;
-        postsWithComments = postViewsService.getOwnPostsWithNLatestComments(viewQuery);
-        response.put("data",postsWithComments);
+        response.put("data",postViewsService.getOwnPostsWithNLatestComments(viewQuery));
         response.put("current_page",pageNum);
         response.put("page_size",pageSize);
         ctx.json(response);
