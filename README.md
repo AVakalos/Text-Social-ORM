@@ -1,3 +1,3 @@
-###A Text Social application with some enchancements
+### A Text Social application with some enchancements
 - Hibernate ORM
 - TestContainers testing
