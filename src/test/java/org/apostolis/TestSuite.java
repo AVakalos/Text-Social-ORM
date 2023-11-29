@@ -52,7 +52,7 @@ public class TestSuite {
 
     // Load schema in test database
     private static void dbSchemaSetup() {
-        String path = "src/test/resources/initialize schema.sql";
+        String path = "src/main/resources/schema.sql";
         try {
             ScriptRunner scriptRunner = new ScriptRunner(AppConfig.getDs().getConnection());
             scriptRunner.setSendFullScript(false);
