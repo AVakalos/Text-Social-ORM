@@ -12,7 +12,7 @@ import java.security.Key;
 import java.time.Instant;
 import java.util.Date;
 
-/* This class implements the Json Web Token authentication and authorization management. */
+// Json Web Token authentication and authorization management.
 
 public class JjwtTokenManagerImpl implements TokenManager{
     private static final long EXPIRE_AFTER_MINS = 60;

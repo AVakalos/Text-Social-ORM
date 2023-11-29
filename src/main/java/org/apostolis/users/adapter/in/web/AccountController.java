@@ -1,33 +1,29 @@
 package org.apostolis.users.adapter.in.web;
 
 import io.javalin.http.Context;
-import org.apostolis.users.application.ports.in.LoginUseCase;
-import org.apostolis.users.application.ports.in.LoginCommand;
-import org.apostolis.users.application.ports.in.RegisterUseCase;
-import org.apostolis.users.application.ports.in.RegisterCommand;
+import org.apostolis.users.application.ports.in.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+// Handles account http requests and user authentication
 public class AccountController {
+    private final AccountManagementUseCase accountService;
 
-    private final RegisterUseCase registerUseCase;
-    private final LoginUseCase loginUseCase;
-
-    public AccountController(RegisterUseCase registerUseCase, LoginUseCase loginUseCase) {
-        this.registerUseCase = registerUseCase;
-        this.loginUseCase = loginUseCase;
+    public AccountController(AccountManagementUseCase accountService) {
+        this.accountService = accountService;
     }
+
 
     public void signup(Context ctx){
         RegisterCommand registerCommand = ctx.bodyAsClass(RegisterCommand.class);
-        registerUseCase.registerUser(registerCommand);
+        accountService.registerUser(registerCommand);
         ctx.result("User registered successfully!");
     }
 
     public void login(Context ctx) {
         LoginCommand loginCommand = ctx.bodyAsClass(LoginCommand.class);
-        String token = loginUseCase.loginUser(loginCommand);
+        String token = accountService.loginUser(loginCommand);
         Map<String, Object> response = new HashMap<>();
         response.put("username",loginCommand.username());
         response.put("token",token);
@@ -35,6 +31,6 @@ public class AccountController {
     }
 
     public void authenticate(Context ctx){
-        loginUseCase.authenticate(ctx.header("Authorization"));
+        accountService.authenticate(ctx.header("Authorization"));
     }
 }

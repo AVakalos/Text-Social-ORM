@@ -4,6 +4,7 @@ import lombok.*;
 
 import java.io.Serializable;
 
+// Wrapper for User id
 @Getter
 @Setter
 @NoArgsConstructor

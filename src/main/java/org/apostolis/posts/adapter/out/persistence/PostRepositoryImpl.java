@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+// Post database crud operations
 public class PostRepositoryImpl implements PostRepository {
 
     private static final Logger logger = LoggerFactory.getLogger(PostRepositoryImpl.class);

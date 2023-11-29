@@ -10,6 +10,7 @@ import org.hibernate.annotations.FetchMode;
 import java.util.HashSet;
 import java.util.Set;
 
+// Entity for Hibernate ORM
 @Entity
 @Table(name="users")
 @NoArgsConstructor

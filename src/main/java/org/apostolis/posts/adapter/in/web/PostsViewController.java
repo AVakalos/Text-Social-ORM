@@ -10,11 +10,11 @@ import org.apostolis.posts.application.ports.in.PostViewsQuery;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ViewPostsController {
+// Handles the post views http requests
+public class PostsViewController {
     private final PostViewsUseCase postViewsService;
 
-
-    public ViewPostsController(PostViewsUseCase postViewsService) {
+    public PostsViewController(PostViewsUseCase postViewsService) {
         this.postViewsService = postViewsService;
     }
 

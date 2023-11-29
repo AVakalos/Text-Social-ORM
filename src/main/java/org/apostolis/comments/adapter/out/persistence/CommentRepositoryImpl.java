@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+// Comment database CRUD operations
 public class CommentRepositoryImpl implements CommentRepository {
     private static final Logger logger = LoggerFactory.getLogger(CommentRepositoryImpl.class);
 

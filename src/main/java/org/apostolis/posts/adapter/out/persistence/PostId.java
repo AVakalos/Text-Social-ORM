@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
+// Wrapper for post id
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode

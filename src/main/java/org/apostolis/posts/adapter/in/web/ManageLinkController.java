@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
+// Handles the user's created custom url encode and decode http requests
 public class ManageLinkController {
     private final ManageLinkUseCase linkService;
 

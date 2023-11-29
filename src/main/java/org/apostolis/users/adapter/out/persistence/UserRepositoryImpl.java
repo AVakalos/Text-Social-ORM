@@ -9,7 +9,7 @@ import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+// User database CRUD operations
 public class UserRepositoryImpl implements UserRepository {
     private static final Logger logger = LoggerFactory.getLogger(UserRepositoryImpl.class);
 

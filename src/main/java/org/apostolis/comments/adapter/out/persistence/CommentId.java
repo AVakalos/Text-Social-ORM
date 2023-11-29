@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 
+// Wrapper for comment id
 @Getter
 @AllArgsConstructor
 @EqualsAndHashCode

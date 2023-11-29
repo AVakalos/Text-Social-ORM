@@ -1,6 +1,5 @@
 package org.apostolis.comments.adapter.out.persistence;
 
-
 import jakarta.persistence.*;
 import lombok.NoArgsConstructor;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
@@ -8,6 +7,8 @@ import org.apostolis.users.adapter.out.persistence.UserEntity;
 
 import java.time.LocalDateTime;
 
+
+// Entity class for Hibernate ORM
 @Entity
 @Table(name="comments")
 @NoArgsConstructor

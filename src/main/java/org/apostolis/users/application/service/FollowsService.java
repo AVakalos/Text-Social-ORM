@@ -6,6 +6,7 @@ import org.apostolis.users.application.ports.in.FollowsCommand;
 import org.apostolis.users.application.ports.in.FollowsUseCase;
 import org.apostolis.users.application.ports.out.FollowsRepository;
 
+// Follows business logic
 public class FollowsService implements FollowsUseCase {
 
     private final FollowsRepository followsRepository;

@@ -13,6 +13,8 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+
+// Hibernate ORM Entity for Posts
 @Entity
 @Table(name="posts")
 @DynamicUpdate

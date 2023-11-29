@@ -15,6 +15,7 @@ import org.apostolis.users.domain.UserDTO;
 
 import java.util.*;
 
+// Business logic for comments views
 public class CommentsViewService implements CommentsViewsUseCase {
 
     private final CommentRepository commentRepository;
@@ -59,15 +60,11 @@ public class CommentsViewService implements CommentsViewsUseCase {
         Map<UserId, Map<PostId,List<Object>>> result = new LinkedHashMap<>();
         Map<UserId, UserDTO> following_users = followsRepository.getFollowing(viewCommentsQuery.user_id(),new PageRequest(0, Integer.MAX_VALUE));
 
-        //System.out.println("Following users: "+following_users);
-
         ArrayList<UserId> user_ids = new ArrayList<>(following_users.keySet());
         user_ids.add(viewCommentsQuery.user_id());
 
         Map<UserId, Map<PostId, PostDTO>> own_and_following_posts = postRepository.getPostsGivenUsersIds(
                 user_ids, viewCommentsQuery.pageRequest());
-
-        //System.out.println("Own and Following posts: "+own_and_following_posts);
 
         if(own_and_following_posts.isEmpty()){
             return result;
@@ -79,8 +76,6 @@ public class CommentsViewService implements CommentsViewsUseCase {
         }
 
         Map<PostId,Map<CommentId,CommentDTO>> latest_comments = commentRepository.getLatestCommentsGivenPostIds(post_ids);
-
-        //System.out.println("Latest comments: "+latest_comments);
 
         if(latest_comments.isEmpty()){
             return null;

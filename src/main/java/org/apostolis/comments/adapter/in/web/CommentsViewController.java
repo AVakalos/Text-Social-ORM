@@ -9,11 +9,13 @@ import org.apostolis.common.PageRequest;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ViewCommentsController {
+
+// handling data retrieval about comments http requests
+public class CommentsViewController {
 
     private final CommentsViewsUseCase commentsViewService;
 
-    public ViewCommentsController(CommentsViewsUseCase commentsViewService) {
+    public CommentsViewController(CommentsViewsUseCase commentsViewService) {
         this.commentsViewService = commentsViewService;
     }
 

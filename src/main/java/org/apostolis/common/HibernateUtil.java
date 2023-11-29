@@ -24,11 +24,11 @@ import org.slf4j.LoggerFactory;
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
 
+// Hibernate ORM and Datasource proxy (queries monitoring) configuration
 public class HibernateUtil {
     private static SessionFactory sessionFactory;
 
     private static final Logger logger = LoggerFactory.getLogger(HibernateUtil.class);
-
 
     public static void initializeSessionFactory(){
         if (sessionFactory == null) {

@@ -9,6 +9,7 @@ import org.apostolis.security.TokenManager;
 
 import java.util.Objects;
 
+// Handles the post creation http requests
 public class CreatePostController {
     private final CreatePostUseCase postService;
 

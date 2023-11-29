@@ -7,11 +7,12 @@ import org.apostolis.users.application.ports.out.FollowsRepository;
 import org.apostolis.users.domain.UserDTO;
 import java.util.Map;
 
-public class GetFollowsService implements GetFollowersAndUsersToFollowUseCase {
+// Follows views business logic
+public class FollowsViewService implements GetFollowersAndUsersToFollowUseCase {
 
     private final FollowsRepository followsRepository;
 
-    public GetFollowsService(FollowsRepository followsRepository) {
+    public FollowsViewService(FollowsRepository followsRepository) {
         this.followsRepository = followsRepository;
     }
 

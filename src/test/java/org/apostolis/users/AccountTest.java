@@ -8,10 +8,7 @@ import org.apostolis.exception.InvalidTokenException;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.security.TokenManager;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
-import org.apostolis.users.application.ports.in.LoginCommand;
-import org.apostolis.users.application.ports.in.LoginUseCase;
-import org.apostolis.users.application.ports.in.RegisterCommand;
-import org.apostolis.users.application.ports.in.RegisterUseCase;
+import org.apostolis.users.application.ports.in.*;
 import org.apostolis.users.domain.Role;
 import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,8 +23,7 @@ public class AccountTest {
     static SessionFactory sessionFactory;
     static TokenManager tokenManager;
     static PasswordEncoder passwordEncoder;
-    static LoginUseCase loginService;
-    static RegisterUseCase registerService;
+    static AccountManagementUseCase accountService;
     private static final AppConfig appConfig = TestSuite.appConfig;
 
     @BeforeAll
@@ -35,8 +31,7 @@ public class AccountTest {
         TestSuite.initialDbSetup();
         tokenManager = appConfig.getTokenManager();
         passwordEncoder = appConfig.getPasswordEncoder();
-        loginService = appConfig.getLoginService();
-        registerService = appConfig.getRegisterService();
+        accountService = appConfig.getAccountService();
         sessionFactory = TestSuite.getSessionFactory();
     }
 
@@ -59,7 +54,7 @@ public class AccountTest {
     @Test
     void testSignUp(){
         RegisterCommand registerCommand = new RegisterCommand("testuser@test.gr","pass1234","FREE");
-        registerService.registerUser(registerCommand);
+        accountService.registerUser(registerCommand);
         sessionFactory.inTransaction(session -> {
             UserEntity user = session.get(UserEntity.class,2);
             assertEquals("testuser@test.gr",user.getUsername());
@@ -70,19 +65,19 @@ public class AccountTest {
     @Test
     void testUnsuccessfulSignUp(){
         RegisterCommand registerCommand = new RegisterCommand("testuser1@test.gr","pass1234","FREE");
-        assertThrows(IllegalArgumentException.class,()->registerService.registerUser(registerCommand));
+        assertThrows(IllegalArgumentException.class,()->accountService.registerUser(registerCommand));
     }
 
     @Test
     void testLogin(){
         LoginCommand loginCommand = new LoginCommand("testuser1@test.gr","pass1234");
-        assertDoesNotThrow(()->loginService.loginUser(loginCommand));
+        assertDoesNotThrow(()->accountService.loginUser(loginCommand));
     }
 
     @Test
     void testUnsuccessfulLogin(){
         LoginCommand loginCommand = new LoginCommand("testuser1@test.gr","incorrect");
-        assertThrows(AuthenticationException.class, ()->loginService.loginUser(loginCommand));
+        assertThrows(AuthenticationException.class, ()->accountService.loginUser(loginCommand));
     }
 
     @Test

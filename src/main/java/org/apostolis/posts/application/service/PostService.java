@@ -9,6 +9,7 @@ import org.apostolis.posts.domain.PostCreationException;
 import org.apostolis.users.adapter.out.persistence.UserId;
 import org.apostolis.users.domain.Role;
 
+// Post creation business logic
 public class PostService implements CreatePostUseCase {
 
     private final PostRepository postRepository;

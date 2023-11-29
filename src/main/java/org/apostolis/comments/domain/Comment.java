@@ -5,6 +5,7 @@ import org.apostolis.users.adapter.out.persistence.UserId;
 
 import java.time.LocalDateTime;
 
+
 public record Comment(
         UserId user,
         long post,

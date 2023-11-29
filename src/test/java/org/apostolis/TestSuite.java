@@ -31,6 +31,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
 
+// Configuration for the testing environment.
 @Suite
 @SelectClasses({AccountTest.class, FollowsTest.class, PostsTest.class, CommentsTest.class})
 public class TestSuite {
@@ -49,6 +50,7 @@ public class TestSuite {
         AppConfig.setHikariDataSource(new HikariDataSource(config));
     }
 
+    // Load schema in test database
     private static void dbSchemaSetup() {
         String path = "src/test/resources/initialize schema.sql";
         try {
@@ -79,6 +81,7 @@ public class TestSuite {
         }
     }
 
+    // Setting the datasource proxy for queries monitoring
     private static DataSource getDataSource() {
         // use pretty formatted query with multiline enabled
         TestSuite.PrettyQueryEntryCreator creator = new TestSuite.PrettyQueryEntryCreator();

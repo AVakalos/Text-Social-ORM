@@ -11,6 +11,7 @@ import io.javalin.http.Context;
 
 import java.util.Objects;
 
+// Handles follow relationships management http requests
 public class FollowsController{
     private final FollowsUseCase followsUseCase;
     private final TokenManager tokenManager;

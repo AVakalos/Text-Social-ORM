@@ -18,6 +18,7 @@ import org.apostolis.users.domain.UserDTO;
 import java.util.*;
 import java.util.List;
 
+// Post views business logic
 public class PostViewService implements PostViewsUseCase {
     private final PostRepository postRepository;
     private final FollowsRepository followsRepository;

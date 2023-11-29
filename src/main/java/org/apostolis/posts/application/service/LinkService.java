@@ -11,10 +11,11 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+
+// User's custom url business logic
 public class LinkService implements ManageLinkUseCase {
 
     private final PostRepository postRepository;
-
     private final PostViewsUseCase postViewsService;
 
 

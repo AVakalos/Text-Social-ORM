@@ -9,11 +9,10 @@ import org.apostolis.security.TokenManager;
 
 import java.util.Objects;
 
+// Handling the comment creation http requests
 public class CreateCommentController {
     private final CreateCommentUseCase commentService;
-
     private final TokenManager tokenManager;
-
 
     public CreateCommentController(CreateCommentUseCase commentService, TokenManager tokenManager) {
         this.commentService = commentService;

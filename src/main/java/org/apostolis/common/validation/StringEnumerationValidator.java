@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+// Validation for user roles enum
 public class StringEnumerationValidator implements ConstraintValidator<StringEnumeration, String> {
 
     private Set<String> AVAILABLE_ENUM_NAMES;

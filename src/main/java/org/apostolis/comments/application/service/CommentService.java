@@ -10,6 +10,7 @@ import org.apostolis.posts.adapter.out.persistence.PostId;
 import org.apostolis.users.adapter.out.persistence.UserId;
 import org.apostolis.users.domain.Role;
 
+// Business logic for comment creation
 public class CommentService implements CreateCommentUseCase {
 
     private final CommentRepository commentRepository;

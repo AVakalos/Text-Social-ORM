@@ -11,13 +11,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class GetFollowsController {
+// Handles follows views http requests
+public class FollowsViewController {
 
     private final GetFollowersAndUsersToFollowUseCase getFollowersAndUsersToFollowUseCase;
 
     private final TokenManager tokenManager;
 
-    public GetFollowsController(GetFollowersAndUsersToFollowUseCase getFollowersAndUsersToFollowUseCase, TokenManager tokenManager) {
+    public FollowsViewController(GetFollowersAndUsersToFollowUseCase getFollowersAndUsersToFollowUseCase, TokenManager tokenManager) {
         this.getFollowersAndUsersToFollowUseCase = getFollowersAndUsersToFollowUseCase;
         this.tokenManager = tokenManager;
     }
