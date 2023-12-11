@@ -21,7 +21,7 @@ public class ManageLinkController {
         this.linkService = linkService;
     }
 
-    public void createLink(Context ctx){
+    public void createLink(Context ctx) throws Exception {
         Long post;
         try {
             post = ctx.pathParamAsClass("post", Long.class).get();

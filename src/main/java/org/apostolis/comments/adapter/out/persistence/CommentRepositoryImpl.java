@@ -1,17 +1,17 @@
 package org.apostolis.comments.adapter.out.persistence;
 
 import jakarta.persistence.Tuple;
-import org.apostolis.AppConfig;
+import lombok.RequiredArgsConstructor;
 import org.apostolis.comments.application.ports.out.CommentRepository;
 import org.apostolis.comments.domain.Comment;
 import org.apostolis.comments.domain.CommentDTO;
+import org.apostolis.comments.domain.CommentId;
 import org.apostolis.common.PageRequest;
+import org.apostolis.common.TransactionUtils;
 import org.apostolis.exception.DatabaseException;
-import org.apostolis.posts.adapter.out.persistence.PostEntity;
-import org.apostolis.posts.adapter.out.persistence.PostId;
-import org.apostolis.users.adapter.out.persistence.UserEntity;
-import org.apostolis.users.adapter.out.persistence.UserId;
-import org.hibernate.SessionFactory;
+import org.apostolis.posts.domain.PostId;
+import org.apostolis.users.domain.UserId;
+import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,58 +19,73 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 // Comment database CRUD operations
+@RequiredArgsConstructor
 public class CommentRepositoryImpl implements CommentRepository {
+
+    private final TransactionUtils transactionUtils;
     private static final Logger logger = LoggerFactory.getLogger(CommentRepositoryImpl.class);
 
     @Override
     public void saveComment(Comment commentToSave) {
-        SessionFactory sessionFactory = AppConfig.getSessionFactory();
-        sessionFactory.inTransaction((session -> {
-            UserEntity commentCreator = session.getReference(UserEntity.class, commentToSave.user().getUser_id());
-            PostEntity post = session.getReference(PostEntity.class, commentToSave.post());
-            session.persist(new CommentEntity(post, commentCreator, commentToSave.text(), commentToSave.createdAt()));
-        }));
+        TransactionUtils.ThrowingConsumer<Session,Exception> saveCommentTask = (session) ->
+            session.persist(
+                    new CommentEntity(
+                        commentToSave.getPost().getPost_id(),
+                        commentToSave.getUser().getUser_id(),
+                        commentToSave.getText(),
+                        commentToSave.getCreatedAt()));
+        System.out.println("Hey");
+        try{
+            transactionUtils.doInTransaction(saveCommentTask);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not save new comment",e);
+        }
     }
 
     @Override
-    public long getCountOfUserCommentsUnderThisPost(UserId UserId, PostId post) {
-        SessionFactory sessionFactory = AppConfig.getSessionFactory();
-        return sessionFactory.fromTransaction(session -> {
+    public long getCountOfUserCommentsUnderThisPost(UserId user, PostId post) {
+        TransactionUtils.ThrowingFunction<Session, Long, Exception> getCountTask = (session) -> {
             String query = """
                     select count(*) as count
                     from CommentEntity
-                    where post.post_id = :post and commentCreator.user_id=:user
+                    where post_id=:post and commentCreator=:user
                     """;
             return session.createSelectionQuery(query,Long.class)
                     .setParameter("post",post.getPost_id())
-                    .setParameter("user",UserId.getUser_id())
+                    .setParameter("user",user.getUser_id())
                     .getSingleResult();
-        });
+        };
+        try{
+            return transactionUtils.doInTransaction(getCountTask);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could get count of user comments under post",e);
+        }
     }
 
     @Override
     public Map<PostId, Map<CommentId, CommentDTO>> getCommentsGivenPostIds(List<PostId> post_ids, PageRequest req) {
-        SessionFactory sessionFactory = AppConfig.getSessionFactory();
-        List<Long> numeric_ids = new ArrayList<>();
-        for(PostId pid: post_ids){
-            numeric_ids.add(pid.getPost_id());
-        }
-        try{
-            return sessionFactory.fromTransaction(session -> {
-                String commentsQuery = """
-                        select post.post_id as pid, comment_id as cid, text as c_text
+        TransactionUtils.ThrowingFunction<Session, Map<PostId, Map<CommentId, CommentDTO>>, Exception> dbtask = (session) -> {
+            List<Long> numeric_ids = new ArrayList<>();
+            for(PostId pid: post_ids){
+                numeric_ids.add(pid.getPost_id());
+            }
+            String commentsQuery = """
+                        select post_id as pid, comment_id as cid, text as c_text
                         from CommentEntity
-                        where post.post_id in(:post_ids)
+                        where post_id in(:post_ids)
                         order by createdAt DESC""";
-                List<Tuple> comment_tuples = session.createQuery(commentsQuery, Tuple.class)
-                        .setParameter("post_ids", numeric_ids)
-                        .setFirstResult(req.pageNumber() * req.pageSize())
-                        .setMaxResults(req.pageSize())
-                        .getResultList();
+            List<Tuple> comment_tuples = session.createQuery(commentsQuery, Tuple.class)
+                    .setParameter("post_ids", numeric_ids)
+                    .setFirstResult(req.pageNumber() * req.pageSize())
+                    .setMaxResults(req.pageSize())
+                    .getResultList();
 
-                return processQueryResults(comment_tuples);
-
-            });
+            return processQueryResults(comment_tuples);
+        };
+        try{
+            return transactionUtils.doInTransaction(dbtask);
         }catch(Exception e){
             logger.error(e.getMessage());
             throw new DatabaseException("Could not retrieve comments by post ids",e);
@@ -78,31 +93,30 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     public Map<PostId, Map<CommentId, CommentDTO>> getLatestCommentsGivenPostIds(List<PostId> post_ids) {
-        SessionFactory sessionFactory = AppConfig.getSessionFactory();
-        List<Long> numeric_ids = new ArrayList<>();
-        for(PostId pid: post_ids){
-            numeric_ids.add(pid.getPost_id());
-        }
-        try{
-            return sessionFactory.fromTransaction(session -> {
-
-                String commentsQuery = """
+        TransactionUtils.ThrowingFunction<Session, Map<PostId, Map<CommentId, CommentDTO>>, Exception> dbtask = (session) -> {
+            List<Long> numeric_ids = new ArrayList<>();
+            for(PostId pid: post_ids){
+                numeric_ids.add(pid.getPost_id());
+            }
+            String commentsQuery = """
                         select rc.pid as pid, rc.cid as cid, rc.c_text as c_text
                         from (
-                            select post.post_id as pid,
+                            select post_id as pid,
                                     comment_id as cid,
                                     text as c_text,
-                                    row_number() over (partition by post.post_id) as rowNum
+                                    row_number() over (partition by post_id) as rowNum
                             from CommentEntity
-                            where post.post_id in(:post_ids)
+                            where post_id in(:post_ids)
                             order by createdAt DESC) as rc
                         where rc.rowNum = 1""";
-                List<Tuple> comment_tuples = session.createQuery(commentsQuery, Tuple.class)
-                        .setParameter("post_ids", numeric_ids)
-                        .getResultList();
+            List<Tuple> comment_tuples = session.createQuery(commentsQuery, Tuple.class)
+                    .setParameter("post_ids", numeric_ids)
+                    .getResultList();
 
-                return processQueryResults(comment_tuples);
-            });
+            return processQueryResults(comment_tuples);
+        };
+        try{
+            return transactionUtils.doInTransaction(dbtask);
         }catch(Exception e){
             logger.error(e.getMessage());
             throw new DatabaseException("Could not retrieve latest comments by post ids",e);

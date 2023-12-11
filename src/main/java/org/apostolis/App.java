@@ -20,7 +20,7 @@ import org.apostolis.posts.domain.PostCreationException;
 import org.apostolis.users.adapter.in.web.AccountController;
 import org.apostolis.users.adapter.in.web.FollowsController;
 import org.apostolis.users.adapter.in.web.FollowsViewController;
-import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.users.domain.UserId;
 
 
 public class App 

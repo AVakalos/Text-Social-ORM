@@ -2,7 +2,7 @@ package org.apostolis.comments;
 
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
-import org.apostolis.comments.adapter.out.persistence.CommentId;
+import org.apostolis.comments.domain.CommentId;
 import org.apostolis.comments.application.ports.in.CommentsViewsUseCase;
 import org.apostolis.comments.application.ports.in.CreateCommentCommand;
 import org.apostolis.comments.application.ports.in.CreateCommentUseCase;
@@ -10,8 +10,10 @@ import org.apostolis.comments.application.ports.in.ViewCommentsQuery;
 import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.comments.domain.CommentDTO;
 import org.apostolis.common.PageRequest;
-import org.apostolis.posts.adapter.out.persistence.PostId;
-import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.common.TransactionUtils;
+import org.apostolis.posts.domain.PostId;
+import org.apostolis.users.domain.UserId;
+import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.MutationQuery;
 import org.junit.jupiter.api.*;
@@ -25,7 +27,7 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CommentsTest {
-    static SessionFactory sessionFactory;
+    static TransactionUtils transactionUtils;
     static CreateCommentUseCase commentService;
     static CommentsViewsUseCase commentsViewsService;
     private static final AppConfig appConfig = TestSuite.appConfig;
@@ -33,40 +35,41 @@ public class CommentsTest {
     @BeforeAll
     static void startDb(){
         TestSuite.initialDbSetup();
-        sessionFactory = TestSuite.getSessionFactory();
+        transactionUtils = appConfig.getTransactionUtils();
         commentService = appConfig.getCommentService();
         commentsViewsService = appConfig.getCommentsViewService();
 
-        try {
-            sessionFactory.inTransaction(session -> {
-                String truncate_tables = "TRUNCATE TABLE users, posts, followers RESTART IDENTITY CASCADE";
-                session.createNativeMutationQuery(truncate_tables).executeUpdate();
+        TransactionUtils.ThrowingConsumer<Session,Exception> task = (session) -> {
+            String truncate_tables = "TRUNCATE TABLE users, posts, followers RESTART IDENTITY CASCADE";
+            session.createNativeMutationQuery(truncate_tables).executeUpdate();
 
-                String insert_users = """
+            String insert_users = """
                         INSERT INTO users (username,password,role) VALUES
                         ('user1','pass','FREE'),
                         ('user2','pass','PREMIUM'),
                         ('user3','pass','FREE')""";
-                session.createNativeMutationQuery(insert_users).executeUpdate();
+            session.createNativeMutationQuery(insert_users).executeUpdate();
 
-                String insert_posts = """
+            String insert_posts = """
                         INSERT INTO posts (user_id, text, isshared, createdat) VALUES
                         (1,'post1 from user1',false,?1),
                         (1,'post2 from user1',false,?2),
                         (2,'post1 from user2',false,?3),
                         (3,'post1 from user3',false,?4)""";
 
-                MutationQuery posts_query = session.createNativeMutationQuery(insert_posts);
-                for (int i = 1; i <= 4; i++) {
-                    posts_query.setParameter(i, Timestamp.valueOf(
-                            LocalDateTime.now(AppConfig.getClock()).plusSeconds(i * 30)));
-                }
-                posts_query.executeUpdate();
+            MutationQuery posts_query = session.createNativeMutationQuery(insert_posts);
+            for (int i = 1; i <= 4; i++) {
+                posts_query.setParameter(i, Timestamp.valueOf(
+                        LocalDateTime.now(AppConfig.getClock()).plusSeconds(i * 30)));
+            }
+            posts_query.executeUpdate();
 
-                // Populate followers table
-                String insert_follows = "INSERT INTO followers VALUES(2,1),(3,1),(1,2),(2,3)";
-                session.createNativeMutationQuery(insert_follows).executeUpdate();
-            });
+            // Populate followers table
+            String insert_follows = "INSERT INTO followers VALUES(2,1),(3,1),(1,2),(2,3)";
+            session.createNativeMutationQuery(insert_follows).executeUpdate();
+        };
+        try {
+            transactionUtils.doInTransaction(task);
         }catch(Exception e){
             throw new RuntimeException(e.getMessage());
         }
@@ -74,12 +77,11 @@ public class CommentsTest {
 
     @BeforeEach
     void intermediateSetupDatabase(){
-        try {
-            sessionFactory.inTransaction(session -> {
-                String truncate_tables = "TRUNCATE TABLE comments RESTART IDENTITY CASCADE";
-                session.createNativeMutationQuery(truncate_tables).executeUpdate();
+        TransactionUtils.ThrowingConsumer<Session,Exception> task = (session) -> {
+            String truncate_tables = "TRUNCATE TABLE comments RESTART IDENTITY CASCADE";
+            session.createNativeMutationQuery(truncate_tables).executeUpdate();
 
-                String insert_comments = """
+            String insert_comments = """
                         INSERT INTO comments (post_id,user_id,text,createdat) VALUES
                         (1,2,'com1 from user2',?1),
                         (2,1,'com1 from user1',?2),
@@ -88,13 +90,15 @@ public class CommentsTest {
                         (2,2,'com2 from user2',?5),
                         (2,3,'com3 from user3',?6)""";
 
-                MutationQuery comments_query = session.createNativeMutationQuery(insert_comments);
-                for(int i=1; i<=6; i++){
-                    comments_query.setParameter(i, Timestamp.valueOf(
-                            LocalDateTime.now(AppConfig.getClock()).plusSeconds(120 + i*30)), Timestamp.class);
-                }
-                comments_query.executeUpdate();
-            });
+            MutationQuery comments_query = session.createNativeMutationQuery(insert_comments);
+            for(int i=1; i<=6; i++){
+                comments_query.setParameter(i, Timestamp.valueOf(
+                        LocalDateTime.now(AppConfig.getClock()).plusSeconds(120 + i*30)), Timestamp.class);
+            }
+            comments_query.executeUpdate();
+        };
+        try {
+            transactionUtils.doInTransaction(task);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -102,15 +106,15 @@ public class CommentsTest {
 
     @Test
     void commentFromFreeUser(){
-        CreateCommentCommand createCommentCommand = new CreateCommentCommand(1L,1L,"first comment","FREE");
+        CreateCommentCommand createCommentCommand = new CreateCommentCommand(new UserId(1L),new PostId(1L),"first comment","FREE");
         assertDoesNotThrow(()->commentService.createComment(createCommentCommand));
     }
 
     @Test
     void commentFromFreeUserExceedLimit(){
-        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(1L,1L,"comment1","FREE");
-        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(1L,1L,"comment2","FREE");
-        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(1L,1L,"comment3","FREE");
+        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(new UserId(1L),new PostId(1L),"comment1","FREE");
+        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(new UserId(1L),new PostId(1L),"comment2","FREE");
+        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(new UserId(1L),new PostId(1L),"comment3","FREE");
 
         assertThrows(CommentCreationException.class, () -> {
             commentService.createComment(createCommentCommand1);
@@ -121,9 +125,9 @@ public class CommentsTest {
 
     @Test
     void commentFromPremiumUser(){
-        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(2L,1L,"comment1","PREMIUM");
-        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(2L,1L,"comment2","PREMIUM");
-        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(2L,1L,"comment3","PREMIUM");
+        CreateCommentCommand createCommentCommand1 = new CreateCommentCommand(new UserId(2L),new PostId(1L),"comment1","PREMIUM");
+        CreateCommentCommand createCommentCommand2 = new CreateCommentCommand(new UserId(2L),new PostId(1L),"comment2","PREMIUM");
+        CreateCommentCommand createCommentCommand3 = new CreateCommentCommand(new UserId(2L),new PostId(1L),"comment3","PREMIUM");
 
         assertDoesNotThrow(() -> {
             commentService.createComment(createCommentCommand1);
@@ -133,7 +137,7 @@ public class CommentsTest {
     }
 
     @Test
-    void getAllCommentsOnOwnPosts(){
+    void getAllCommentsOnOwnPosts() throws Exception {
         ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(
                 new UserId(1L),new PageRequest(0,Integer.MAX_VALUE));
         Map<PostId, List<Object>> result = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
@@ -146,7 +150,7 @@ public class CommentsTest {
     }
 
     @Test
-    void getLatestCommentsOnOwnOrFollowersPosts(){
+    void getLatestCommentsOnOwnOrFollowersPosts() throws Exception {
         ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(
                 new UserId(2L),new PageRequest(0,Integer.MAX_VALUE));
 

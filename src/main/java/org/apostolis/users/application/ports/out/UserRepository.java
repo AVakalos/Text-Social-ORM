@@ -1,7 +1,7 @@
 package org.apostolis.users.application.ports.out;
 
 import org.apostolis.exception.DatabaseException;
-import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.users.domain.UserId;
 import org.apostolis.users.domain.User;
 
 public interface UserRepository {

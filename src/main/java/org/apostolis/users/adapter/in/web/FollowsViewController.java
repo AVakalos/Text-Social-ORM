@@ -3,7 +3,7 @@ package org.apostolis.users.adapter.in.web;
 import io.javalin.http.Context;
 import org.apostolis.App;
 import org.apostolis.security.TokenManager;
-import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.users.domain.UserId;
 import org.apostolis.users.application.ports.in.GetFollowersAndUsersToFollowUseCase;
 import org.apostolis.users.domain.UserDTO;
 
@@ -23,7 +23,7 @@ public class FollowsViewController {
         this.tokenManager = tokenManager;
     }
 
-    public void getFollowers(Context ctx){
+    public void getFollowers(Context ctx) throws Exception {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
 
@@ -36,7 +36,7 @@ public class FollowsViewController {
         ctx.json(response);
     }
 
-    public void getUsersToFollow(Context ctx){
+    public void getUsersToFollow(Context ctx) throws Exception {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String user = tokenManager.extractUsername(token);
 

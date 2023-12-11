@@ -12,6 +12,26 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <junit-bom-version>5.10.0</junit-bom-version>
+    <hibernate-version>6.3.0.Final</hibernate-version>
+    <javalin-bundle-version>5.6.1</javalin-bundle-version>
+    <logback-version>1.4.6</logback-version>
+    <postgres-version>42.6.0</postgres-version>
+    <junit-version>1.8.1</junit-version>
+    <spring-security-version>6.1.2</spring-security-version>
+    <jwt-version>0.11.2</jwt-version>
+    <vaadin-google-version>0.0.20131108.vaadin1</vaadin-google-version>
+    <hikariCP-version>5.0.1</hikariCP-version>
+    <hibernate-validator-version>8.0.1.Final</hibernate-validator-version>
+    <expressly-version>5.0.0</expressly-version>
+    <test-containers-version>1.18.0</test-containers-version>
+    <mybatis-version>3.5.7</mybatis-version>
+    <hibernate-hikaricp-version>6.3.1.Final</hibernate-hikaricp-version>
+    <datasource-proxy-version>1.9</datasource-proxy-version>
+    <lombok-version>1.18.30</lombok-version>
+
+    <mvn-compiler-plugin>16</mvn-compiler-plugin>
+    <mvn-surefire-plugin>3.1.2</mvn-surefire-plugin>
   </properties>
 
   <dependencyManagement>
@@ -19,7 +39,7 @@
       <dependency>
         <groupId>org.junit</groupId>
         <artifactId>junit-bom</artifactId>
-        <version>5.10.0</version>
+        <version>${junit-bom-version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -27,7 +47,7 @@
       <dependency>
         <groupId>org.hibernate.orm</groupId>
         <artifactId>hibernate-platform</artifactId>
-        <version>6.3.0.Final</version>
+        <version>${hibernate-version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -40,25 +60,20 @@
     <dependency>
       <groupId>io.javalin</groupId>
       <artifactId>javalin-bundle</artifactId>
-      <version>5.6.1</version>
+      <version>${javalin-bundle-version}</version>
     </dependency>
 
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.4.6</version>
+      <version>${logback-version}</version>
     </dependency>
 
-<!--    <dependency>-->
-<!--      <groupId>org.slf4j</groupId>-->
-<!--      <artifactId>slf4j-simple</artifactId>-->
-<!--      <version>2.0.7</version>-->
-<!--    </dependency>-->
 
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <version>42.6.0</version>
+      <version>${postgres-version}</version>
     </dependency>
 
     <dependency>
@@ -70,68 +85,68 @@
     <dependency>
       <groupId>org.junit.platform</groupId>
       <artifactId>junit-platform-suite-engine</artifactId>
-      <version>1.8.1</version>
+      <version>${junit-version}</version>
     </dependency>
 
 
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
-      <version>6.1.2</version>
+      <version>${spring-security-version}</version>
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt-api</artifactId>
-      <version>0.11.2</version>
+      <version>${jwt-version}</version>
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt-impl</artifactId>
-      <version>0.11.2</version>
+      <version>${jwt-version}</version>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
       <artifactId>jjwt-jackson</artifactId> <!-- or jjwt-gson if Gson is preferred -->
-      <version>0.11.2</version>
+      <version>${jwt-version}</version>
       <scope>runtime</scope>
     </dependency>
 
     <dependency>
       <groupId>com.vaadin.external.google</groupId>
       <artifactId>android-json</artifactId>
-      <version>0.0.20131108.vaadin1</version>
+      <version>${vaadin-google-version}</version>
     </dependency>
 
     <dependency>
       <groupId>com.zaxxer</groupId>
       <artifactId>HikariCP</artifactId>
-      <version>5.0.1</version>
+      <version>${hikariCP-version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>8.0.1.Final</version>
+      <version>${hibernate-validator-version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.glassfish.expressly</groupId>
       <artifactId>expressly</artifactId>
-      <version>5.0.0</version>
+      <version>${expressly-version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>1.18.0</version>
+      <version>${test-containers-version}</version>
       <scope>test</scope>
     </dependency>
 
     <dependency>
       <groupId>org.mybatis</groupId>
       <artifactId>mybatis</artifactId>
-      <version>3.5.7</version>
+      <version>${mybatis-version}</version>
     </dependency>
 
     <dependency>
@@ -143,24 +158,23 @@
       <artifactId>jakarta.transaction-api</artifactId>
     </dependency>
 
-    <!-- https://mvnrepository.com/artifact/org.hibernate.orm/hibernate-hikaricp -->
     <dependency>
       <groupId>org.hibernate.orm</groupId>
       <artifactId>hibernate-hikaricp</artifactId>
-      <version>6.3.1.Final</version>
+      <version>${hibernate-hikaricp-version}</version>
     </dependency>
 
 
     <dependency>
       <groupId>net.ttddyy</groupId>
       <artifactId>datasource-proxy</artifactId>
-      <version>1.9</version>
+      <version>${datasource-proxy-version}</version>
     </dependency>
 
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.30</version>
+      <version>${lombok-version}</version>
       <scope>provided</scope>
     </dependency>
 
@@ -171,15 +185,15 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <source>16</source>
-          <target>16</target>
+          <source>${mvn-compiler-plugin}</source>
+          <target>${mvn-compiler-plugin}</target>
         </configuration>
       </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>${mvn-surefire-plugin}</version>
       </plugin>
     </plugins>
   </build>

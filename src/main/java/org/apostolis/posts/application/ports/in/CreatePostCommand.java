@@ -5,9 +5,11 @@ import jakarta.validation.constraints.NotNull;
 import org.apostolis.common.validation.SelfValidating;
 import org.apostolis.common.validation.StringEnumeration;
 import org.apostolis.users.domain.Role;
+import org.apostolis.users.domain.User;
+import org.apostolis.users.domain.UserId;
 
 public record CreatePostCommand(
-        Long user,
+        UserId user,
         @NotNull
         @NotBlank
         String text,
@@ -16,7 +18,7 @@ public record CreatePostCommand(
 
         implements SelfValidating<CreatePostCommand> {
 
-    public CreatePostCommand(Long user, String text, String role) {
+    public CreatePostCommand(UserId user, String text, String role) {
         this.user = user;
         this.text = text;
         this.role= role;

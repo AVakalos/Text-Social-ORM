@@ -2,7 +2,7 @@ package org.apostolis.users.application.ports.out;
 
 import org.apostolis.common.PageRequest;
 import org.apostolis.exception.DatabaseException;
-import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.users.domain.UserId;
 import org.apostolis.users.domain.UserDTO;
 import java.util.Map;
 

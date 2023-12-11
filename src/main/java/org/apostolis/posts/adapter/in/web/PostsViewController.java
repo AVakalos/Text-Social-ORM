@@ -18,7 +18,7 @@ public class PostsViewController {
         this.postViewsService = postViewsService;
     }
 
-    public void getFollowingPosts(Context ctx){
+    public void getFollowingPosts(Context ctx) throws Exception {
         int pageNum;
         int pageSize;
         try{
@@ -36,7 +36,7 @@ public class PostsViewController {
         ctx.json(response);
     }
 
-    public void getOwnPostsWithLatestNComments(Context ctx){
+    public void getOwnPostsWithLatestNComments(Context ctx) throws Exception {
         int pageNum;
         int pageSize;
         int commentsNum;

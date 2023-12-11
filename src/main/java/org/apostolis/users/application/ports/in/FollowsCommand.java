@@ -1,18 +1,20 @@
 package org.apostolis.users.application.ports.in;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.apostolis.common.validation.SelfValidating;
+import org.apostolis.users.domain.UserId;
 
 public record FollowsCommand(
 
-        @Positive
-        Long user_id,
-        @Positive
-        Long follows
+        @Valid
+        UserId user_id,
+        @Valid
+        UserId follows
 
 ) implements SelfValidating<FollowsCommand> {
 
-    public FollowsCommand(Long user_id, Long follows){
+    public FollowsCommand(UserId user_id, UserId follows){
         this.user_id = user_id;
         this.follows = follows;
         this.selfValidate();

@@ -1,7 +1,7 @@
-package org.apostolis.users.adapter.out.persistence;
+package org.apostolis.users.domain;
 
+import jakarta.validation.constraints.Positive;
 import lombok.*;
-
 import java.io.Serializable;
 
 // Wrapper for User id
@@ -12,6 +12,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class UserId implements Serializable {
 
+    @Positive
     private Long user_id;
     public String toString(){
         return "User"+user_id;

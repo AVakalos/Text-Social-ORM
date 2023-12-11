@@ -12,6 +12,7 @@ import org.apostolis.comments.application.ports.out.CommentRepository;
 import org.apostolis.comments.application.service.CommentService;
 import org.apostolis.comments.application.service.CommentsViewService;
 import org.apostolis.common.HibernateUtil;
+import org.apostolis.common.TransactionUtils;
 import org.apostolis.posts.adapter.in.web.CreatePostController;
 import org.apostolis.posts.adapter.in.web.ManageLinkController;
 import org.apostolis.posts.adapter.in.web.PostsViewController;
@@ -97,33 +98,10 @@ public class AppConfig {
 
     private final AccountManagementUseCase accountService;
 
+    private final TransactionUtils transactionUtils;
+
 
     public AppConfig(String mode){
-        passwordEncoder = new PasswordEncoder();
-        tokenManager = new JjwtTokenManagerImpl();
-
-        UserRepository userRepository = new UserRepositoryImpl();
-        FollowsRepository followsRepository = new FollowsRepositoryImpl();
-        CommentRepository commentRepository = new CommentRepositoryImpl();
-        PostRepository postRepository = new PostRepositoryImpl();
-
-        accountService = new AccountService(userRepository, tokenManager, passwordEncoder);
-        followsService = new FollowsService(followsRepository);
-        getFollowsService = new FollowsViewService(followsRepository);
-        postService = new PostService(postRepository);
-        commentService = new CommentService(commentRepository);
-        postViewsService = new PostViewService(postRepository, followsRepository, commentRepository);
-        commentsViewService = new CommentsViewService(commentRepository, postRepository, followsRepository);
-        linkService = new LinkService(postRepository, postViewsService);
-
-        accountController = new AccountController(accountService);
-        followsController = new FollowsController(followsService,tokenManager);
-        followsViewController = new FollowsViewController(getFollowsService,tokenManager);
-        createPostController = new CreatePostController(postService, tokenManager);
-        createCommentController = new CreateCommentController(commentService, tokenManager);
-        postsViewController = new PostsViewController(postViewsService);
-        commentsViewController = new CommentsViewController(commentsViewService);
-        manageLinkController = new ManageLinkController(linkService);
 
         // Parameters for production or testing environments.
         if(mode.equals("production")){
@@ -148,6 +126,34 @@ public class AppConfig {
         }else{
             throw new RuntimeException("Specify mode 'production' or 'test' when initializing AppConfig");
         }
+
+        passwordEncoder = new PasswordEncoder();
+        tokenManager = new JjwtTokenManagerImpl();
+        transactionUtils = new TransactionUtils();
+
+
+        UserRepository userRepository = new UserRepositoryImpl(transactionUtils);
+        FollowsRepository followsRepository = new FollowsRepositoryImpl(transactionUtils);
+        CommentRepository commentRepository = new CommentRepositoryImpl(transactionUtils);
+        PostRepository postRepository = new PostRepositoryImpl(transactionUtils);
+
+        accountService = new AccountService(userRepository, tokenManager, passwordEncoder, transactionUtils);
+        followsService = new FollowsService(followsRepository, transactionUtils);
+        getFollowsService = new FollowsViewService(followsRepository, transactionUtils);
+        postService = new PostService(postRepository, transactionUtils);
+        commentService = new CommentService(commentRepository, transactionUtils);
+        postViewsService = new PostViewService(postRepository, followsRepository, commentRepository, transactionUtils);
+        commentsViewService = new CommentsViewService(commentRepository, postRepository, followsRepository, transactionUtils);
+        linkService = new LinkService(postRepository, postViewsService, transactionUtils);
+
+        accountController = new AccountController(accountService);
+        followsController = new FollowsController(followsService,tokenManager);
+        followsViewController = new FollowsViewController(getFollowsService,tokenManager);
+        createPostController = new CreatePostController(postService, tokenManager);
+        createCommentController = new CreateCommentController(commentService, tokenManager);
+        postsViewController = new PostsViewController(postViewsService);
+        commentsViewController = new CommentsViewController(commentsViewService);
+        manageLinkController = new ManageLinkController(linkService);
     }
 
     // Read application.properties file utility method

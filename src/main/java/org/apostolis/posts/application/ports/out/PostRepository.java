@@ -1,10 +1,10 @@
 package org.apostolis.posts.application.ports.out;
 
 import org.apostolis.common.PageRequest;
-import org.apostolis.posts.adapter.out.persistence.PostId;
+import org.apostolis.posts.domain.PostId;
 import org.apostolis.posts.domain.Post;
 import org.apostolis.posts.domain.PostDTO;
-import org.apostolis.users.adapter.out.persistence.UserId;
+import org.apostolis.users.domain.UserId;
 
 import java.util.List;
 import java.util.Map;

@@ -7,6 +7,7 @@ import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.apostolis.AppConfig;
 import org.apostolis.comments.adapter.out.persistence.CommentEntity;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
+import org.apostolis.users.adapter.out.persistence.FollowerEntity;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -40,6 +41,7 @@ public class HibernateUtil {
                     .addAnnotatedClass(UserEntity.class)
                     .addAnnotatedClass(PostEntity.class)
                     .addAnnotatedClass(CommentEntity.class)
+                    .addAnnotatedClass(FollowerEntity.class)
                     .getMetadataBuilder()
                     .build();
 

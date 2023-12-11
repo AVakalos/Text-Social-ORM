@@ -10,10 +10,12 @@ import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apostolis.comments.CommentsTest;
 import org.apostolis.comments.adapter.out.persistence.CommentEntity;
+import org.apostolis.common.TransactionUtils;
 import org.apostolis.posts.PostsTest;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.apostolis.users.AccountTest;
 import org.apostolis.users.FollowsTest;
+import org.apostolis.users.adapter.out.persistence.FollowerEntity;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -41,6 +43,7 @@ public class TestSuite {
     static PostgreSQLContainer<?> postgresTestDb = new PostgreSQLContainer<>("postgres:15-alpine");
 
     public static SessionFactory sessionFactory;
+
 
     private static void hikariCPSetup(){
         HikariConfig config = new HikariConfig();
@@ -72,6 +75,7 @@ public class TestSuite {
                     .addAnnotatedClass(UserEntity.class)
                     .addAnnotatedClass(PostEntity.class)
                     .addAnnotatedClass(CommentEntity.class)
+                    .addAnnotatedClass(FollowerEntity.class)
                     .getMetadataBuilder()
                     .build();
 
@@ -120,5 +124,6 @@ public class TestSuite {
         hikariCPSetup();
         dbSchemaSetup();
         hibernateConfig();
+        appConfig.getTransactionUtils().setSessionFactory(sessionFactory);
     }
 }

@@ -20,12 +20,12 @@ public class CreatePostController {
         this.tokenManager = tokenManager;
     }
 
-    public void createPost(Context ctx){
+    public void createPost(Context ctx) throws Exception {
         String token = Objects.requireNonNull(ctx.header("Authorization")).substring(7);
         String authenticationLevel = tokenManager.extractRole(token);
         CreatePostRequest request = ctx.bodyAsClass(CreatePostRequest.class);
         CreatePostCommand createPostCommand = new CreatePostCommand(
-                App.currentUserId.get().getUser_id(), request.text(), authenticationLevel);
+                App.currentUserId.get(), request.text(), authenticationLevel);
         postService.createPost(createPostCommand);
         ctx.result(tokenManager.extractUsername(token)+" did a new post.");
     }

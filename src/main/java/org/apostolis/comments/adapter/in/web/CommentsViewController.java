@@ -19,7 +19,7 @@ public class CommentsViewController {
         this.commentsViewService = commentsViewService;
     }
 
-    public void getCommentsOnOwnPosts(Context ctx){
+    public void getCommentsOnOwnPosts(Context ctx) throws Exception {
         ViewCommentsQuery viewsQuery = createQueryFromRequest(ctx);
         Map<String, Object> response = new HashMap<>();
         response.put("data",commentsViewService.getCommentsOnOwnPosts(viewsQuery));
@@ -28,7 +28,7 @@ public class CommentsViewController {
         ctx.json(response);
     }
 
-    public void getLatestCommentsOnOwnOrFollowingPosts(Context ctx){
+    public void getLatestCommentsOnOwnOrFollowingPosts(Context ctx) throws Exception {
         ViewCommentsQuery viewsQuery = createQueryFromRequest(ctx);
         Map<String, Object> response = new HashMap<>();
         response.put("data",commentsViewService.getLatestCommentsOnOwnOrFollowingPosts(viewsQuery));
