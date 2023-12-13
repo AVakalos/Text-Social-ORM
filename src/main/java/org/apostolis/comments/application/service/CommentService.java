@@ -8,8 +8,6 @@ import org.apostolis.comments.application.ports.out.CommentRepository;
 import org.apostolis.comments.domain.Comment;
 import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.common.TransactionUtils;
-import org.apostolis.posts.domain.PostId;
-import org.apostolis.users.domain.UserId;
 import org.apostolis.users.domain.Role;
 import org.hibernate.Session;
 

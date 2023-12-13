@@ -1,14 +1,11 @@
 package org.apostolis.posts.application.ports.in;
 
-import org.apostolis.posts.domain.PostId;
-import org.apostolis.users.domain.UserId;
-
-import java.util.List;
-import java.util.Map;
+import org.apostolis.posts.domain.FollowingPostsView;
+import org.apostolis.posts.domain.PostsWithNLatestCommentsView;
 
 public interface PostViewsUseCase {
-    Map<UserId, List<Object>> getFollowingPosts(PostViewsQuery viewQuery) throws Exception;
-    Map<PostId,List<Object>> getOwnPostsWithNLatestComments(OwnPostsWithNCommentsQuery viewQuery) throws Exception;
-    List<Object> getPostWithNLatestComments(PostWithNCommentsQuery viewQuery) throws Exception;
+    FollowingPostsView getFollowingPosts(PostViewsQuery viewQuery) throws Exception;
+    PostsWithNLatestCommentsView getOwnPostsWithNLatestComments(OwnPostsWithNCommentsQuery viewQuery) throws Exception;
+    PostsWithNLatestCommentsView getPostWithNLatestComments(PostWithNCommentsQuery viewQuery) throws Exception;
 
 }

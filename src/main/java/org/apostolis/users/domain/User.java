@@ -46,22 +46,22 @@ public class User{
             throw new AuthenticationException("Authentication token is invalid");
         }
     }
-
-    public void addFollowingUser(UserId id){
-        following_users.add(id);
-    }
-
-    public void removeFollowingUser(UserId id){
-        following_users.remove(id);
-    }
-
-    public void addFollower(UserId id){
-        followers.add(id);
-    }
-
-    public void removeFollower(UserId id){
-        followers.remove(id);
-    }
+//
+//    public void addFollowingUser(UserId id){
+//        following_users.add(id);
+//    }
+//
+//    public void removeFollowingUser(UserId id){
+//        following_users.remove(id);
+//    }
+//
+//    public void addFollower(UserId id){
+//        followers.add(id);
+//    }
+//
+//    public void removeFollower(UserId id){
+//        followers.remove(id);
+//    }
 }
 
 

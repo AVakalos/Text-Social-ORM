@@ -3,16 +3,13 @@ package org.apostolis.posts;
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
 import org.apostolis.comments.domain.CommentId;
-import org.apostolis.comments.domain.CommentDTO;
+import org.apostolis.comments.domain.CommentDetails;
 import org.apostolis.common.PageRequest;
 import org.apostolis.common.TransactionUtils;
-import org.apostolis.posts.domain.PostId;
+import org.apostolis.posts.domain.*;
 import org.apostolis.posts.application.ports.in.*;
-import org.apostolis.posts.domain.PostCreationException;
-import org.apostolis.posts.domain.PostDTO;
 import org.apostolis.users.domain.UserId;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.MutationQuery;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,8 +17,6 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -137,15 +132,15 @@ public class PostsTest {
     @Test
     void getFollowingPosts() throws Exception {
         PostViewsQuery postViewsQuery = new PostViewsQuery(new UserId(2L), new PageRequest(0,Integer.MAX_VALUE));
-        Map<UserId, List<Object>> result = postViewService.getFollowingPosts(postViewsQuery);
+        FollowingPostsView followingPosts = postViewService.getFollowingPosts(postViewsQuery);
 
-        Map<PostId, PostDTO> posts_from_first_follower = (HashMap)result.get(new UserId(1L)).get(1);
-        Map<PostId, PostDTO> posts_from_second_follower = (HashMap)result.get(new UserId(3L)).get(1);
+        Map<PostId, PostDetails> posts_from_first_follower = followingPosts.getFollowingPosts().getData().get(new UserId(1L));
+        Map<PostId, PostDetails> posts_from_second_follower = followingPosts.getFollowingPosts().getData().get(new UserId(3L));
 
-        PostDTO p1 = (PostDTO) posts_from_first_follower.values().toArray()[0];
-        PostDTO p2 = (PostDTO) posts_from_first_follower.values().toArray()[1];
-        PostDTO p3 = (PostDTO) posts_from_second_follower.values().toArray()[0];
-        assertEquals(2, result.keySet().size());
+        PostDetails p1 = (PostDetails) posts_from_first_follower.values().toArray()[0];
+        PostDetails p2 = (PostDetails) posts_from_first_follower.values().toArray()[1];
+        PostDetails p3 = (PostDetails) posts_from_second_follower.values().toArray()[0];
+        assertEquals(2, followingPosts.getFollowingPosts().getData().keySet().size());
         assertEquals(2, posts_from_first_follower.size());
         assertEquals(1, posts_from_second_follower.size());
         assertEquals("post2 from user1",p1.text());
@@ -155,20 +150,24 @@ public class PostsTest {
 
     @Test
     void getOwnPostsWithNLatestComments() throws Exception {
-        OwnPostsWithNCommentsQuery viewQuery = new OwnPostsWithNCommentsQuery(1L,2,new PageRequest(0,Integer.MAX_VALUE));
-        Map<PostId, List<Object>> results = postViewService.getOwnPostsWithNLatestComments(viewQuery);
+        OwnPostsWithNCommentsQuery viewQuery =
+                new OwnPostsWithNCommentsQuery(1L,100,new PageRequest(0,Integer.MAX_VALUE));
+        PostsWithNLatestCommentsView postsWithNLatestComments = postViewService.getOwnPostsWithNLatestComments(viewQuery);
 
-        HashMap<CommentId, String> post1_comments = (HashMap)results.get(new PostId(1L)).get(1);
-        HashMap<CommentId, String> post2_comments = (HashMap)results.get(new PostId(2L)).get(1);
+        Map<CommentId, CommentDetails> post1_comments = postsWithNLatestComments.getCommentsPerPost().getData().get(new PostId(1L));
+        Map<CommentId, CommentDetails> post2_comments = postsWithNLatestComments.getCommentsPerPost().getData().get(new PostId(2L));
+        System.out.println("Test "+post1_comments);
+        System.out.println("Test "+post2_comments);
 
-        assertEquals(2,results.keySet().size());
+
+        assertEquals(2,postsWithNLatestComments.getCommentsPerPost().getData().keySet().size());
         assertEquals(2,post1_comments.size());
         assertEquals(3,post2_comments.size());
 
-        CommentDTO c1 = (CommentDTO) post1_comments.values().toArray()[0];
-        CommentDTO c2 = (CommentDTO) post1_comments.values().toArray()[1];
-        CommentDTO c3 = (CommentDTO) post2_comments.values().toArray()[0];
-        CommentDTO c4 = (CommentDTO) post2_comments.values().toArray()[1];
+        CommentDetails c1 = (CommentDetails) post1_comments.values().toArray()[0];
+        CommentDetails c2 = (CommentDetails) post1_comments.values().toArray()[1];
+        CommentDetails c3 = (CommentDetails) post2_comments.values().toArray()[0];
+        CommentDetails c4 = (CommentDetails) post2_comments.values().toArray()[1];
 
         assertEquals("com2 from user3",c1.text());
         assertEquals("com1 from user2", c2.text());
@@ -179,9 +178,8 @@ public class PostsTest {
     @Test
     void LinkForPostAndComments() throws Exception {
         String url = linkService.createLink(new CreateLinkCommand(1L,1L));
-        List<Object> decoded = linkService.decodeLink(url);
-        Map<CommentId, String> post_comments = (HashMap)decoded.get(1);
-        assertEquals("post1 from user1",decoded.get(0));
+        PostsWithNLatestCommentsView decoded = linkService.decodeLink(url);
+        Map<CommentId, CommentDetails> post_comments = decoded.getCommentsPerPost().getData().get(new PostId(1L));
         assertEquals(2,post_comments.size());
     }
 }

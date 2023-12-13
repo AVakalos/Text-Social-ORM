@@ -1,12 +1,10 @@
 package org.apostolis.users.application.ports.in;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Positive;
 import org.apostolis.common.validation.SelfValidating;
 import org.apostolis.users.domain.UserId;
 
 public record FollowsCommand(
-
         @Valid
         UserId user_id,
         @Valid

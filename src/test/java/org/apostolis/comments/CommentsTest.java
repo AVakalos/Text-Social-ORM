@@ -2,26 +2,21 @@ package org.apostolis.comments;
 
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
-import org.apostolis.comments.domain.CommentId;
 import org.apostolis.comments.application.ports.in.CommentsViewsUseCase;
 import org.apostolis.comments.application.ports.in.CreateCommentCommand;
 import org.apostolis.comments.application.ports.in.CreateCommentUseCase;
 import org.apostolis.comments.application.ports.in.ViewCommentsQuery;
-import org.apostolis.comments.domain.CommentCreationException;
-import org.apostolis.comments.domain.CommentDTO;
+import org.apostolis.comments.domain.*;
 import org.apostolis.common.PageRequest;
 import org.apostolis.common.TransactionUtils;
 import org.apostolis.posts.domain.PostId;
 import org.apostolis.users.domain.UserId;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.query.MutationQuery;
 import org.junit.jupiter.api.*;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -140,12 +135,12 @@ public class CommentsTest {
     void getAllCommentsOnOwnPosts() throws Exception {
         ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(
                 new UserId(1L),new PageRequest(0,Integer.MAX_VALUE));
-        Map<PostId, List<Object>> result = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
+        CommentsOnOwnPostsView ownPostsComments = commentsViewsService.getCommentsOnOwnPosts(viewCommentsQuery);
 
-        Map<CommentId, CommentDTO> post1_comments = (HashMap)result.get(new PostId(2L)).get(1);
-        Map<CommentId, CommentDTO> post2_comments = (HashMap)result.get(new PostId(1L)).get(1);
+        Map<CommentId, CommentDetails> post1_comments = ownPostsComments.getCommentsPerPost().getData().get(new PostId(2L));
+        Map<CommentId, CommentDetails> post2_comments = ownPostsComments.getCommentsPerPost().getData().get(new PostId(1L));
 
-        assertEquals(2,result.size());
+        assertEquals(2,ownPostsComments.getOwnPosts().getData().size());
         assertEquals(5,post1_comments.size()+post2_comments.size());
     }
 
@@ -154,13 +149,12 @@ public class CommentsTest {
         ViewCommentsQuery viewCommentsQuery = new ViewCommentsQuery(
                 new UserId(2L),new PageRequest(0,Integer.MAX_VALUE));
 
-        Map<UserId, Map<PostId,List<Object>>> result =
+        LatestCommentOnPostView latestComments =
                 commentsViewsService.getLatestCommentsOnOwnOrFollowingPosts(viewCommentsQuery);
 
-        int total_size_of_posts = result.get(new UserId(1L)).size() +
-                                  result.get(new UserId(3L)).size() +
-                                  result.get(new UserId(2L)).size();
-
+        int total_size_of_posts = latestComments.getOwnOrFollowingPosts().getData().get(new UserId(1L)).size()+
+                                  latestComments.getOwnOrFollowingPosts().getData().get(new UserId(2L)).size()+
+                                  latestComments.getOwnOrFollowingPosts().getData().get(new UserId(3L)).size();
         assertEquals(4,total_size_of_posts);
     }
 }

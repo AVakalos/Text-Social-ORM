@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import org.apostolis.common.validation.SelfValidating;
 import org.apostolis.common.validation.StringEnumeration;
 import org.apostolis.users.domain.Role;
-import org.apostolis.users.domain.User;
 import org.apostolis.users.domain.UserId;
 
 public record CreatePostCommand(

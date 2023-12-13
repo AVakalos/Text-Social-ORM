@@ -4,15 +4,15 @@ import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.apostolis.comments.application.ports.out.CommentRepository;
 import org.apostolis.comments.domain.Comment;
-import org.apostolis.comments.domain.CommentDTO;
+import org.apostolis.comments.domain.CommentDetails;
 import org.apostolis.comments.domain.CommentId;
+import org.apostolis.common.PersistenseDataTypes.CommentsByPostId;
 import org.apostolis.common.PageRequest;
 import org.apostolis.common.TransactionUtils;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.posts.domain.PostId;
 import org.apostolis.users.domain.UserId;
 import org.hibernate.Session;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +65,12 @@ public class CommentRepositoryImpl implements CommentRepository {
     }
 
     @Override
-    public Map<PostId, Map<CommentId, CommentDTO>> getCommentsGivenPostIds(List<PostId> post_ids, PageRequest req) {
-        TransactionUtils.ThrowingFunction<Session, Map<PostId, Map<CommentId, CommentDTO>>, Exception> dbtask = (session) -> {
+    public CommentsByPostId getCommentsGivenPostIds(List<PostId> post_ids, PageRequest req) {
+        TransactionUtils.ThrowingFunction<Session, CommentsByPostId, Exception> dbtask = (session) -> {
             List<Long> numeric_ids = new ArrayList<>();
             for(PostId pid: post_ids){
                 numeric_ids.add(pid.getPost_id());
+                System.out.println(numeric_ids);
             }
             String commentsQuery = """
                         select post_id as pid, comment_id as cid, text as c_text
@@ -92,8 +93,8 @@ public class CommentRepositoryImpl implements CommentRepository {
         }
     }
 
-    public Map<PostId, Map<CommentId, CommentDTO>> getLatestCommentsGivenPostIds(List<PostId> post_ids) {
-        TransactionUtils.ThrowingFunction<Session, Map<PostId, Map<CommentId, CommentDTO>>, Exception> dbtask = (session) -> {
+    public CommentsByPostId getLatestCommentsGivenPostIds(List<PostId> post_ids) {
+        TransactionUtils.ThrowingFunction<Session, CommentsByPostId, Exception> dbtask = (session) -> {
             List<Long> numeric_ids = new ArrayList<>();
             for(PostId pid: post_ids){
                 numeric_ids.add(pid.getPost_id());
@@ -123,18 +124,18 @@ public class CommentRepositoryImpl implements CommentRepository {
         }
     }
 
-    @NotNull
-    private Map<PostId, Map<CommentId, CommentDTO>> processQueryResults(List<Tuple> comment_tuples) {
-        Map<PostId,Map<CommentId,CommentDTO>> results = new LinkedHashMap<>();
+    private CommentsByPostId processQueryResults(List<Tuple> comment_tuples) {
+        Map<PostId,Map<CommentId,CommentDetails>> results = new LinkedHashMap<>();
 
         for (Tuple comment : comment_tuples) {
+            System.out.println(comment);
             PostId post_id = new PostId((Long) comment.get("pid"));
             CommentId comment_id = new CommentId((Long) comment.get("cid"));
             if (!results.containsKey(post_id)) {
                 results.put(post_id, new LinkedHashMap<>());
             }
-            results.get(post_id).put(comment_id, new CommentDTO((String) comment.get("c_text")));
+            results.get(post_id).put(comment_id, new CommentDetails((String) comment.get("c_text")));
         }
-        return results;
+        return new CommentsByPostId(results);
     }
 }

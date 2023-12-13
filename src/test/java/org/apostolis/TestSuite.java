@@ -10,7 +10,6 @@ import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 import org.apache.ibatis.jdbc.ScriptRunner;
 import org.apostolis.comments.CommentsTest;
 import org.apostolis.comments.adapter.out.persistence.CommentEntity;
-import org.apostolis.common.TransactionUtils;
 import org.apostolis.posts.PostsTest;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.apostolis.users.AccountTest;

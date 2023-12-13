@@ -1,8 +1,8 @@
 package org.apostolis.posts.application.ports.in;
 
-import java.util.List;
+import org.apostolis.posts.domain.PostsWithNLatestCommentsView;
 
 public interface ManageLinkUseCase {
     String createLink(CreateLinkCommand createLinkCommand) throws Exception;
-    List<Object> decodeLink(String url) throws Exception;
+    PostsWithNLatestCommentsView decodeLink(String url) throws Exception;
 }

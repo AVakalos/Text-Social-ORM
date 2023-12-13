@@ -3,6 +3,7 @@ package org.apostolis.posts.application.service;
 import lombok.RequiredArgsConstructor;
 import org.apostolis.AppConfig;
 import org.apostolis.common.TransactionUtils;
+import org.apostolis.posts.domain.PostsWithNLatestCommentsView;
 import org.apostolis.posts.domain.PostId;
 import org.apostolis.posts.application.ports.in.*;
 import org.apostolis.posts.application.ports.out.PostRepository;
@@ -12,8 +13,6 @@ import org.hibernate.Session;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
-
 
 // User's custom url business logic
 @RequiredArgsConstructor
@@ -46,8 +45,8 @@ public class LinkService implements ManageLinkUseCase {
     }
 
     @Override
-    public List<Object> decodeLink(String url) throws Exception {
-        TransactionUtils.ThrowingFunction<Session, List<Object>, Exception> decode = (session) -> {
+    public PostsWithNLatestCommentsView decodeLink(String url) throws Exception {
+        TransactionUtils.ThrowingFunction<Session, PostsWithNLatestCommentsView, Exception> decode = (session) -> {
             String host = AppConfig.readProperties().getProperty("host");
             String port = AppConfig.readProperties().getProperty("port");
             String encoded = url.replace("http://"+host+":"+port+"/","");

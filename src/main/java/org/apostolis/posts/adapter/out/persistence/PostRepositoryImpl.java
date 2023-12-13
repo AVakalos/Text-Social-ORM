@@ -3,12 +3,12 @@ package org.apostolis.posts.adapter.out.persistence;
 import jakarta.persistence.Tuple;
 import lombok.RequiredArgsConstructor;
 import org.apostolis.common.PageRequest;
+import org.apostolis.common.PersistenseDataTypes.PostsById;
+import org.apostolis.common.PersistenseDataTypes.PostsByUserId;
 import org.apostolis.common.TransactionUtils;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.posts.application.ports.out.PostRepository;
-import org.apostolis.posts.domain.Post;
-import org.apostolis.posts.domain.PostDTO;
-import org.apostolis.posts.domain.PostId;
+import org.apostolis.posts.domain.*;
 import org.apostolis.users.domain.UserId;
 import org.hibernate.Session;
 import org.slf4j.Logger;
@@ -32,12 +32,11 @@ public class PostRepositoryImpl implements PostRepository {
             logger.error(e.getMessage());
             throw new DatabaseException("Could not save new post",e);
         }
-
     }
 
     @Override
-    public Map<PostId,PostDTO> getPostById(PostId post_id) {
-        TransactionUtils.ThrowingFunction<Session, Map<PostId,PostDTO>, Exception> task = (session) -> {
+    public PostsById getPostById(PostId post_id) {
+        TransactionUtils.ThrowingFunction<Session, PostsById, Exception> task = (session) -> {
             String postsQuery = """
                         select post_id as pid, text as p_text
                         from PostEntity
@@ -46,9 +45,9 @@ public class PostRepositoryImpl implements PostRepository {
             Tuple post = session.createSelectionQuery(postsQuery, Tuple.class)
                     .setParameter("post",post_id.getPost_id())
                     .getSingleResult();
-            Map<PostId, PostDTO> postDTOHashMap = new HashMap<>();
-            postDTOHashMap.put(new PostId((Long)post.get("pid")),new PostDTO((String)post.get("p_text")));
-            return postDTOHashMap;
+            Map<PostId, PostDetails> postHashMap = new HashMap<>();
+            postHashMap.put(new PostId((Long)post.get("pid")),new PostDetails((String)post.get("p_text")));
+            return new PostsById(postHashMap);
         };
         try{
             return transactionUtils.doInTransaction(task);
@@ -59,9 +58,9 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public Map<UserId,Map<PostId,PostDTO>> getPostsGivenUsersIds(List<UserId> user_ids, PageRequest req) {
+    public PostsByUserId getPostsGivenUsersIds(List<UserId> user_ids, PageRequest req) {
 
-        TransactionUtils.ThrowingFunction<Session, Map<UserId,Map<PostId,PostDTO>>, Exception> task = (session) -> {
+        TransactionUtils.ThrowingFunction<Session, PostsByUserId, Exception> task = (session) -> {
             List<Long> numeric_ids = new ArrayList<>();
             for(UserId id: user_ids){
                 numeric_ids.add(id.getUser_id());
@@ -78,7 +77,7 @@ public class PostRepositoryImpl implements PostRepository {
                     .setMaxResults(req.pageSize())
                     .getResultList();
 
-            Map<UserId, Map<PostId, PostDTO>> results = new LinkedHashMap<>();
+            Map<UserId, Map<PostId,PostDetails>> results = new LinkedHashMap<>();
 
             for (Tuple post : post_tuples) {
                 UserId user_id = new UserId((Long) post.get("uid"));
@@ -86,9 +85,9 @@ public class PostRepositoryImpl implements PostRepository {
                 if (!results.containsKey(user_id)) {
                     results.put(user_id, new LinkedHashMap<>());
                 }
-                results.get(user_id).put(new PostId(post_id), new PostDTO((String) post.get("p_text")));
+                results.get(user_id).put(new PostId(post_id), new PostDetails((String) post.get("p_text")));
             }
-            return results;
+            return new PostsByUserId(results);
         };
         try {
             return transactionUtils.doInTransaction(task);

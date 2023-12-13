@@ -3,18 +3,15 @@ package org.apostolis.users;
 import org.apostolis.AppConfig;
 import org.apostolis.TestSuite;
 import org.apostolis.common.TransactionUtils;
+import org.apostolis.common.PersistenseDataTypes.UsersById;
 import org.apostolis.users.domain.UserId;
 import org.apostolis.users.application.ports.in.FollowsCommand;
 import org.apostolis.users.application.ports.in.FollowsUseCase;
 import org.apostolis.users.application.ports.in.GetFollowersAndUsersToFollowUseCase;
-import org.apostolis.users.domain.UserDTO;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -83,23 +80,23 @@ public class FollowsTest {
 
     @Test
     void getFollowers() throws Exception {
-        Map<UserId, UserDTO> results = getFollowsService.getFollowers(
-                new UserId(1L),0,Integer.MAX_VALUE);
-        assertEquals(2,results.size());
+        UsersById results = getFollowsService.getFollowers(
+                new UserId(1L),0,Integer.MAX_VALUE).getUsers();
+        assertEquals(2,results.getData().size());
     }
 
     @Test
     void getUsersToFollowAvailable() throws Exception {
-        Map<UserId, UserDTO> results = getFollowsService.getUsersToFollow(
-                new UserId(3L),0,Integer.MAX_VALUE);
-        assertEquals(1,results.size());
+        UsersById results = getFollowsService.getUsersToFollow(
+                new UserId(3L),0,Integer.MAX_VALUE).getUsers();
+        assertEquals(1,results.getData().size());
     }
 
     @Test
     void getUsersToFollowNoAvailable() throws Exception {
-        Map<UserId, UserDTO> results = getFollowsService.getUsersToFollow(
-                new UserId(2L),0,Integer.MAX_VALUE);
+        UsersById results = getFollowsService.getUsersToFollow(
+                new UserId(2L),0,Integer.MAX_VALUE).getUsers();
         System.out.println(results);
-        assertEquals(0,results.size());
+        assertEquals(0,results.getData().size());
     }
 }

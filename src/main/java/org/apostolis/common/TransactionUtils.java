@@ -1,12 +1,10 @@
 package org.apostolis.common;
 
-import lombok.Getter;
 import lombok.Setter;
 import org.apostolis.AppConfig;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.resource.transaction.spi.TransactionStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -12,13 +12,9 @@ import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.apostolis.users.application.ports.in.*;
 import org.apostolis.users.domain.Role;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-
-import java.util.Arrays;
 
 import static org.junit.jupiter.api.Assertions.*;
 
