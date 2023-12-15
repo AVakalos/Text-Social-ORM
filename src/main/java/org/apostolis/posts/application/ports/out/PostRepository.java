@@ -1,6 +1,7 @@
 package org.apostolis.posts.application.ports.out;
 
 import org.apostolis.common.PageRequest;
+import org.apostolis.common.PersistenseDataTypes.CommentsByPostId;
 import org.apostolis.common.PersistenseDataTypes.PostsById;
 import org.apostolis.common.PersistenseDataTypes.PostsByUserId;
 import org.apostolis.posts.domain.*;
@@ -15,4 +16,5 @@ public interface PostRepository {
     void registerLink(PostId post_id);
     boolean checkLink(PostId post_id);
     boolean isMyPost(UserId user_id, PostId post_id);
+    long getCountOfUserCommentsUnderThisPost(UserId user, PostId post);
 }

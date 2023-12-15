@@ -149,4 +149,27 @@ public class PostRepositoryImpl implements PostRepository {
             throw new DatabaseException("Could not check if post belongs to user",e);
         }
     }
+
+    @Override
+    public long getCountOfUserCommentsUnderThisPost(UserId user, PostId post) {
+        TransactionUtils.ThrowingFunction<Session, Long, Exception> getCountTask = (session) -> {
+            String query = """
+                    select count(*) as count
+                    from CommentEntity
+                    where post.post_id=:post and commentCreator=:user
+                    """;
+            return session.createSelectionQuery(query,Long.class)
+                    .setParameter("post",post.getPost_id())
+                    .setParameter("user",user.getUser_id())
+                    .getSingleResult();
+        };
+        try{
+            return transactionUtils.doInTransaction(getCountTask);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could get count of user comments under post",e);
+        }
+    }
+
+
 }

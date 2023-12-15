@@ -25,8 +25,7 @@ public class PostService implements CreatePostUseCase {
             String text = createPostCommand.text();
             Role role = Role.valueOf(createPostCommand.role());
 
-            Post postToSave = new Post(user, text);
-            postToSave.validatePostByUserRole(role);
+            Post postToSave = Post.createPost(user, text, role);
             postRepository.savePost(postToSave);
         };
         transactionUtils.doInTransaction(create);

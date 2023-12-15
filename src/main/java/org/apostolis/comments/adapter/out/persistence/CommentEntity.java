@@ -1,39 +1,53 @@
 package org.apostolis.comments.adapter.out.persistence;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.apostolis.comments.domain.Comment;
+import org.apostolis.posts.adapter.out.persistence.PostEntity;
+import org.apostolis.users.adapter.out.persistence.UserEntity;
+
 import java.time.LocalDateTime;
 
 // Entity class for Hibernate ORM
 @Entity
 @Table(name="comments")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CommentEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, nullable = false)
-    Long comment_id;
+    private Long comment_id;
 
-    @Column(name="post_id")
-    Long post_id;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="post_id")
+    private PostEntity post;
 
     @Column(name="user_id")
-    Long commentCreator;
+    private Long commentCreator;
 
     @Column(length=1000, nullable = false)
-    String text;
+    private String text;
 
     @Column(nullable = false)
-    LocalDateTime createdAt;
+    private LocalDateTime createdAt;
 
-    public CommentEntity(Long post, Long commentCreator, String text, LocalDateTime createdAt){
-        this.post_id = post;
+    private CommentEntity(PostEntity post, Long commentCreator, String text, LocalDateTime createdAt){
+        this.post = post;
         this.commentCreator = commentCreator;
         this.text = text;
         this.createdAt = createdAt;
     }
 
-    public void setPost(Long post){
-        this.post_id = post;
+    public static CommentEntity mapToEntity(Comment comment, PostEntity postEntity){
+        return new CommentEntity(
+                postEntity,
+                comment.getUser().getUser_id(),
+                comment.getText(),
+                comment.getCreatedAt());
     }
+
+//    public void setPost(PostEntity post){
+//        this.post_id = post;
+//    }
 }

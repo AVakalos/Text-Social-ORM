@@ -14,7 +14,7 @@ import org.apostolis.posts.PostsTest;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.apostolis.users.AccountTest;
 import org.apostolis.users.FollowsTest;
-import org.apostolis.users.adapter.out.persistence.FollowerEntity;
+import org.apostolis.users.adapter.out.persistence.FollowEntity;
 import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.hibernate.SessionFactory;
 import org.hibernate.boot.Metadata;
@@ -74,7 +74,7 @@ public class TestSuite {
                     .addAnnotatedClass(UserEntity.class)
                     .addAnnotatedClass(PostEntity.class)
                     .addAnnotatedClass(CommentEntity.class)
-                    .addAnnotatedClass(FollowerEntity.class)
+                    .addAnnotatedClass(FollowEntity.class)
                     .getMetadataBuilder()
                     .build();
 

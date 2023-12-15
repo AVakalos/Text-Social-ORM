@@ -5,7 +5,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.Getter;
 import org.apostolis.comments.adapter.in.web.CreateCommentController;
 import org.apostolis.comments.adapter.in.web.CommentsViewController;
-import org.apostolis.comments.adapter.out.persistence.CommentRepositoryImpl;
+import org.apostolis.comments.adapter.out.persistence.CommentViewsRepositoryImpl;
 import org.apostolis.comments.application.ports.in.CommentsViewsUseCase;
 import org.apostolis.comments.application.ports.in.CreateCommentUseCase;
 import org.apostolis.comments.application.ports.out.CommentRepository;
@@ -30,10 +30,10 @@ import org.apostolis.security.TokenManager;
 import org.apostolis.users.adapter.in.web.AccountController;
 import org.apostolis.users.adapter.in.web.FollowsController;
 import org.apostolis.users.adapter.in.web.FollowsViewController;
-import org.apostolis.users.adapter.out.persistence.FollowsRepositoryImpl;
+import org.apostolis.users.adapter.out.persistence.FollowViewsRepositoryImpl;
 import org.apostolis.users.adapter.out.persistence.UserRepositoryImpl;
 import org.apostolis.users.application.ports.in.*;
-import org.apostolis.users.application.ports.out.FollowsRepository;
+import org.apostolis.users.application.ports.out.FollowViewsRepository;
 import org.apostolis.users.application.ports.out.UserRepository;
 import org.apostolis.users.application.service.*;
 import org.hibernate.SessionFactory;
@@ -133,24 +133,24 @@ public class AppConfig {
 
 
         UserRepository userRepository = new UserRepositoryImpl(transactionUtils);
-        FollowsRepository followsRepository = new FollowsRepositoryImpl(transactionUtils);
-        CommentRepository commentRepository = new CommentRepositoryImpl(transactionUtils);
+        FollowViewsRepository followViewsRepository = new FollowViewsRepositoryImpl(transactionUtils);
+        CommentRepository commentRepository = new CommentViewsRepositoryImpl(transactionUtils);
         PostRepository postRepository = new PostRepositoryImpl(transactionUtils);
 
-        accountService = new AccountService(userRepository, tokenManager, passwordEncoder, transactionUtils);
-        followsService = new FollowsService(followsRepository, transactionUtils);
-        getFollowsService = new FollowsViewService(followsRepository, transactionUtils);
-        postService = new PostService(postRepository, transactionUtils);
-        commentService = new CommentService(commentRepository, transactionUtils);
-        postViewsService = new PostViewService(postRepository, followsRepository, commentRepository, transactionUtils);
-        commentsViewService = new CommentsViewService(commentRepository, postRepository, followsRepository, transactionUtils);
-        linkService = new LinkService(postRepository, postViewsService, transactionUtils);
+        accountService = new AccountService(userRepository,tokenManager,passwordEncoder,transactionUtils);
+        followsService = new FollowsService(followViewsRepository,transactionUtils);
+        getFollowsService = new FollowsViewService(followViewsRepository,transactionUtils);
+        postService = new PostService(postRepository,transactionUtils);
+        commentService = new CommentService(postRepository,transactionUtils);
+        postViewsService = new PostViewService(postRepository, followViewsRepository,commentRepository,transactionUtils);
+        commentsViewService = new CommentsViewService(commentRepository,postRepository, followViewsRepository,transactionUtils);
+        linkService = new LinkService(postRepository,postViewsService,transactionUtils);
 
         accountController = new AccountController(accountService);
         followsController = new FollowsController(followsService,tokenManager);
         followsViewController = new FollowsViewController(getFollowsService,tokenManager);
-        createPostController = new CreatePostController(postService, tokenManager);
-        createCommentController = new CreateCommentController(commentService, tokenManager);
+        createPostController = new CreatePostController(postService,tokenManager);
+        createCommentController = new CreateCommentController(commentService,tokenManager);
         postsViewController = new PostsViewController(postViewsService);
         commentsViewController = new CommentsViewController(commentsViewService);
         manageLinkController = new ManageLinkController(linkService);

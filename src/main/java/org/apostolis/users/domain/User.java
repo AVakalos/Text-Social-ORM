@@ -16,9 +16,8 @@ public class User{
     private final String username;
     private final String password;
     private final String role;
-    private final Set<UserId> following_users;
-    private final Set<UserId> followers;
-
+    private final Set<User> following_users = new HashSet<>();;
+    private final Set<User> followers = new HashSet<>();;
 
     private static final Logger logger = LoggerFactory.getLogger(User.class);
 
@@ -26,8 +25,6 @@ public class User{
         this.username = username;
         this.password = password;
         this.role = role;
-        this.following_users = new HashSet<>();
-        this.followers = new HashSet<>();
     }
 
     public boolean checkPassword(String insertedPassword, PasswordEncoder passwordEncoder){
@@ -46,21 +43,33 @@ public class User{
             throw new AuthenticationException("Authentication token is invalid");
         }
     }
+
+    public void addFollowingUser(User followingUser){
+        if(followingUser.getUsername().equals(this.username)){
+            throw new IllegalArgumentException("You can't follow yourself");
+        }
+        following_users.add(followingUser);
+    }
+
+    public void removeFollowingUser(User followingUser){
+        following_users.remove(followingUser);
+    }
+
+//    public void addFollower(User follower){
+//        if(!followers.contains(follower)){
+//            followers.add(follower);
+//        }else{
+//            throw new IllegalArgumentException("User:"+this.username+" already in followers of: "+ follower.username);
+//        }
 //
-//    public void addFollowingUser(UserId id){
-//        following_users.add(id);
 //    }
 //
-//    public void removeFollowingUser(UserId id){
-//        following_users.remove(id);
-//    }
-//
-//    public void addFollower(UserId id){
-//        followers.add(id);
-//    }
-//
-//    public void removeFollower(UserId id){
-//        followers.remove(id);
+//    public void removeFollower(User follower){
+//        if(followers.contains(follower)){
+//            followers.remove(follower);
+//        }else{
+//            throw new IllegalArgumentException("User:"+follower.username+" already in followers of: "+ this.username);
+//        }
 //    }
 }
 

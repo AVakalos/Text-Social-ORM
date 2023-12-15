@@ -15,7 +15,7 @@ import org.apostolis.posts.domain.PostId;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.posts.domain.PostDetails;
 import org.apostolis.users.domain.UserId;
-import org.apostolis.users.application.ports.out.FollowsRepository;
+import org.apostolis.users.application.ports.out.FollowViewsRepository;
 import org.hibernate.Session;
 
 
@@ -28,7 +28,7 @@ public class CommentsViewService implements CommentsViewsUseCase {
 
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
-    private final FollowsRepository followsRepository;
+    private final FollowViewsRepository followViewsRepository;
     private final TransactionUtils transactionUtils;
 
     @Override
@@ -59,7 +59,7 @@ public class CommentsViewService implements CommentsViewsUseCase {
     public LatestCommentOnPostView getLatestCommentsOnOwnOrFollowingPosts(ViewCommentsQuery viewCommentsQuery) throws Exception {
         TransactionUtils.ThrowingFunction<Session, LatestCommentOnPostView, Exception> getLatestComments = (session) -> {
 
-            UsersById following_users = followsRepository.getFollowing(
+            UsersById following_users = followViewsRepository.getFollowing(
                     viewCommentsQuery.user_id(),new PageRequest(0, Integer.MAX_VALUE));
 
             ArrayList<UserId> user_ids = new ArrayList<>(following_users.getData().keySet());

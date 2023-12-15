@@ -2,10 +2,15 @@ package org.apostolis.posts.domain;
 
 import lombok.Getter;
 import org.apostolis.AppConfig;
+import org.apostolis.comments.domain.Comment;
+import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.users.domain.Role;
 import org.apostolis.users.domain.UserId;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 
 @Getter
 public class Post{
@@ -14,13 +19,22 @@ public class Post{
     private final String text;
     private final LocalDateTime createdAt;
 
-    public Post(UserId user, String text){
+    Set<Comment> post_comments = new HashSet<>();
+
+    private Post(UserId user, String text){
         this.user = user;
         this.text = text;
         this.createdAt = LocalDateTime.now(AppConfig.getClock());
     }
 
-    public void validatePostByUserRole(Role role){
+    public Post(PostId id, UserId user, String text, LocalDateTime createdAt){
+        this.id = id;
+        this.user = user;
+        this.text = text;
+        this.createdAt = createdAt;
+    }
+
+    public static Post createPost(UserId user, String text, Role role){
         long post_size = text.length();
         switch (role){
             case FREE:
@@ -40,5 +54,17 @@ public class Post{
             default:
                 break;
         }
+        return new Post(user, text);
+    }
+
+    public void addComment(Comment comment,long comments_count, Role role){
+        if(role.equals(Role.FREE)){
+            int max_comments_number = AppConfig.getFREE_MAX_COMMENTS();
+            if(comments_count >= max_comments_number){
+                throw new CommentCreationException("Free users can comment up to "+ max_comments_number +" times per post."+
+                        "\nYou reached the maximum number of comments for this post.");
+            }
+        }
+        post_comments.add(comment);
     }
 }

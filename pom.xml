@@ -13,7 +13,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit-bom-version>5.10.0</junit-bom-version>
-    <hibernate-version>6.3.0.Final</hibernate-version>
+    <hibernate-version>6.4.0.Final</hibernate-version>
     <javalin-bundle-version>5.6.1</javalin-bundle-version>
     <logback-version>1.4.6</logback-version>
     <postgres-version>42.6.0</postgres-version>

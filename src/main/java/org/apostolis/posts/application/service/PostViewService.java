@@ -14,7 +14,7 @@ import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.posts.application.ports.in.OwnPostsWithNCommentsQuery;
 import org.apostolis.posts.application.ports.in.PostViewsQuery;
 import org.apostolis.users.domain.UserId;
-import org.apostolis.users.application.ports.out.FollowsRepository;
+import org.apostolis.users.application.ports.out.FollowViewsRepository;
 import org.hibernate.Session;
 
 import java.util.*;
@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PostViewService implements PostViewsUseCase {
     private final PostRepository postRepository;
-    private final FollowsRepository followsRepository;
+    private final FollowViewsRepository followViewsRepository;
     private final CommentRepository commentRepository;
     private final TransactionUtils transactionUtils;
 
@@ -33,7 +33,7 @@ public class PostViewService implements PostViewsUseCase {
     public FollowingPostsView getFollowingPosts(PostViewsQuery postViewsQuery) throws Exception {
         TransactionUtils.ThrowingFunction<Session, FollowingPostsView, Exception> getPosts = (session) -> {
 
-            UsersById following_users = followsRepository.getFollowing(postViewsQuery.user(),postViewsQuery.pageRequest());
+            UsersById following_users = followViewsRepository.getFollowing(postViewsQuery.user(),postViewsQuery.pageRequest());
             if(following_users == null){
                 return new FollowingPostsView(new PostsByUserId(new HashMap<>()));
             }

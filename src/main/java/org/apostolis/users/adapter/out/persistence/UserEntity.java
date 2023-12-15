@@ -1,8 +1,13 @@
 package org.apostolis.users.adapter.out.persistence;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.apostolis.users.domain.User;
+import org.apostolis.users.domain.UserId;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -10,7 +15,7 @@ import java.util.Set;
 // Entity for Hibernate ORM
 @Entity
 @Table(name="users")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class UserEntity {
     @Id
@@ -27,15 +32,16 @@ public class UserEntity {
     @Column(length = 50, nullable = false)
     private String role;
 
-    @Transient
-    private Set<Long> following = new HashSet<>();
+    @JoinTable(name = "followers",
+            joinColumns = {@JoinColumn(name = "user_id")},
+            inverseJoinColumns = {@JoinColumn(name = "following_id")})
+    @ManyToMany(cascade = CascadeType.ALL)
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<UserEntity> following = new HashSet<>();
 
-    @Transient
-    private Set<Long> followers = new HashSet<>();
-
-    @Transient
-    private Set<Long> user_posts = new HashSet<>();
-
+    @ManyToMany(cascade = CascadeType.ALL, mappedBy = "following")
+    @Fetch(FetchMode.SUBSELECT)
+    private Set<UserEntity> followers = new HashSet<>();
 
     public UserEntity(String username, String password, String role) {
         this.username = username;
@@ -43,22 +49,26 @@ public class UserEntity {
         this.role = role;
     }
 
-//    public void addFollowing(Long to_follow){
-//
-//        boolean existed = following.add(to_follow);
-//        if(!existed){
-//            throw new IllegalArgumentException("You already follow this user");
-//        }
-//    }
-//
-//    public void removeFollowing(Long to_unfollow){
-//        boolean existed = following.remove(to_unfollow);
-//        if(!existed){
-//            throw new IllegalArgumentException("You were not following this user or user does not exist");
-//        }
-//    }
-//
-//    public void addFollower(Long follower){
+    public User mapToDTO(){
+        return new User(username, password, role);
+    }
+
+    public void addFollowing(UserEntity to_follow){
+
+        boolean existed = following.add(to_follow);
+        if(!existed){
+            throw new IllegalArgumentException("You already follow user: " + to_follow.getUser_id());
+        }
+    }
+
+    public void removeFollowing(UserEntity to_unfollow){
+        boolean existed = following.remove(to_unfollow);
+        if(!existed){
+            throw new IllegalArgumentException("You were not following user: "+to_unfollow.getUser_id());
+        }
+    }
+
+//    public void addFollower(UserEntity follower){
 //
 //        boolean existed = followers.add(follower);
 //        if(!existed){
@@ -66,7 +76,7 @@ public class UserEntity {
 //        }
 //    }
 //
-//    public void removeFollower(Long follower){
+//    public void removeFollower(UserEntity follower){
 //        boolean existed = followers.remove(follower);
 //        if(!existed){
 //            throw new IllegalArgumentException("remove follower failed");
