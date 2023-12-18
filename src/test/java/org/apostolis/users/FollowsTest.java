@@ -96,7 +96,6 @@ public class FollowsTest {
     void getUsersToFollowNoAvailable() throws Exception {
         UsersById results = getFollowsService.getUsersToFollow(
                 new UserId(2L),0,Integer.MAX_VALUE).getUsers();
-        System.out.println(results);
         assertEquals(0,results.getData().size());
     }
 }

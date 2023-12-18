@@ -138,7 +138,7 @@ public class AppConfig {
         PostRepository postRepository = new PostRepositoryImpl(transactionUtils);
 
         accountService = new AccountService(userRepository,tokenManager,passwordEncoder,transactionUtils);
-        followsService = new FollowsService(followViewsRepository,transactionUtils);
+        followsService = new FollowsService(userRepository,transactionUtils);
         getFollowsService = new FollowsViewService(followViewsRepository,transactionUtils);
         postService = new PostService(postRepository,transactionUtils);
         commentService = new CommentService(postRepository,transactionUtils);

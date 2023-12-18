@@ -80,7 +80,7 @@ public class FollowViewsRepositoryImpl implements FollowViewsRepository {
 
     private UsersById processQueryResults(UserId user_id, PageRequest req, Session session, String followersQuery) {
         List<Tuple> followers = session.createSelectionQuery(followersQuery, Tuple.class)
-                .setParameter("userId", user_id.getUser_id())
+                .setParameter("userId", user_id.getValue())
                 .setFirstResult(req.pageNumber() * req.pageSize())
                 .setMaxResults(req.pageSize())
                 .getResultList();

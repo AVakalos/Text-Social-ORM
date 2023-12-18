@@ -45,11 +45,10 @@ public class PostsViewController {
             List<PostDTO> followingPostsDTOs = new ArrayList<>();
             Map<PostId, PostDetails> following_users_post = data.getFollowingPosts().getData().get(following_user_id);
             for(PostId post_id: following_users_post.keySet()){
-                followingPostsDTOs.add(new PostDTO(post_id.getPost_id(), following_users_post.get(post_id).text()));
+                followingPostsDTOs.add(new PostDTO(post_id.getValue(), following_users_post.get(post_id).text()));
             }
-            followingPostsViewDTOs.add(new FollowingPostsViewDTO(following_user_id.getUser_id(), followingPostsDTOs));
+            followingPostsViewDTOs.add(new FollowingPostsViewDTO(following_user_id.getValue(), followingPostsDTOs));
         }
-
         Map<String, Object> response = new HashMap<>();
         response.put("data",followingPostsViewDTOs);
         response.put("current_page",pageNum);
@@ -70,21 +69,20 @@ public class PostsViewController {
             throw new IllegalArgumentException("page and size and comments must be positive integers");
         }
         OwnPostsWithNCommentsQuery viewQuery = new OwnPostsWithNCommentsQuery(
-                App.currentUserId.get().getUser_id(), commentsNum, new PageRequest(pageNum,pageSize));
+                App.currentUserId.get().getValue(), commentsNum, new PageRequest(pageNum,pageSize));
 
         PostsWithNLatestCommentsView data = postViewsService.getOwnPostsWithNLatestComments(viewQuery);
         List<PostWithCommentsDTO> postWithCommentsDTOS = new ArrayList<>();
         for(PostId post_id: data.getCommentsPerPost().getData().keySet()){
-            long numericId = post_id.getPost_id();
+            long numericId = post_id.getValue();
             List<CommentDTO> commentDTOs = new ArrayList<>();
             Map<CommentId, CommentDetails> commentsOfPost = data.getCommentsPerPost().getData().get(post_id);
             for(CommentId comment_id: commentsOfPost.keySet()){
-                commentDTOs.add(new CommentDTO(comment_id.getComment_id(), commentsOfPost.get(comment_id).text()));
+                commentDTOs.add(new CommentDTO(comment_id.getValue(), commentsOfPost.get(comment_id).text()));
             }
             postWithCommentsDTOS.add(
                     new PostWithCommentsDTO(numericId, data.getPosts().getData().get(post_id).text(),commentDTOs));
         }
-
         Map<String, Object> response = new HashMap<>();
         response.put("data",postWithCommentsDTOS);
         response.put("current_page",pageNum);

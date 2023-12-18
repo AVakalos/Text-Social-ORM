@@ -1,16 +1,15 @@
 package org.apostolis.comments.application.service;
 
 import lombok.RequiredArgsConstructor;
-import org.apostolis.comments.adapter.out.persistence.CommentEntity;
 import org.apostolis.comments.application.ports.in.CreateCommentCommand;
 import org.apostolis.comments.application.ports.in.CreateCommentUseCase;
 import org.apostolis.comments.domain.Comment;
-import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.common.TransactionUtils;
-import org.apostolis.posts.adapter.out.persistence.PostEntity;
 import org.apostolis.posts.application.ports.out.PostRepository;
 import org.apostolis.posts.domain.Post;
+import org.apostolis.posts.domain.PostId;
 import org.apostolis.users.domain.Role;
+import org.apostolis.users.domain.UserId;
 import org.hibernate.Session;
 
 // Business logic for comment crud operations
@@ -23,22 +22,22 @@ public class CommentService implements CreateCommentUseCase {
     @Override
     public void createComment(CreateCommentCommand createCommentCommand) throws Exception {
         TransactionUtils.ThrowingConsumer<Session,Exception> createComment = (session) -> {
-            PostEntity targetPostEntity = session.find(PostEntity.class, createCommentCommand.post().getPost_id());
-
-            if(targetPostEntity == null){
-                throw new CommentCreationException("Couldn't find the post with id: "+createCommentCommand.post().getPost_id());
-            }
-            Comment newComment = new Comment(createCommentCommand.user(), createCommentCommand.post(), createCommentCommand.text());
+            PostId post_id = createCommentCommand.post();
+            UserId user_id = createCommentCommand.user();
+            // Find the aggregate root
+            Post targetPost = postRepository.findById(post_id);
+            // Prepare for calling business logic
             Role role = Role.valueOf(createCommentCommand.role());
             long comments_count = 0;
             if (role == Role.FREE){
-                comments_count = postRepository.getCountOfUserCommentsUnderThisPost(createCommentCommand.user(),createCommentCommand.post());
+                comments_count = postRepository.getCountOfUserCommentsUnderThisPost(user_id,post_id);
             }
-            Post targetPost = targetPostEntity.mapToDomain();
+            // Call business logic from domain
+            Comment newComment = new Comment(user_id, post_id, createCommentCommand.text());
             targetPost.addComment(newComment,comments_count,role);
 
-            targetPostEntity.addComment(CommentEntity.mapToEntity(newComment,targetPostEntity));
-            session.persist(targetPostEntity);
+            // Persist new comment from aggregate root
+            postRepository.saveComment(post_id,newComment);
         };
         transactionUtils.doInTransaction(createComment);
     }

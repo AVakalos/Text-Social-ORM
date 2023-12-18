@@ -52,8 +52,8 @@ public class LinkService implements ManageLinkUseCase {
             String encoded = url.replace("http://"+host+":"+port+"/","");
             String decoded = URLDecoder.decode(encoded, StandardCharsets.UTF_8);
 
-            String[] split =  decoded.split(",");
-            long post_id = Long.parseLong(split[1]);
+            String[] splitUrl =  decoded.split(",");
+            long post_id = Long.parseLong(splitUrl[1]);
             if(postRepository.checkLink(new PostId(post_id))){
                 PostWithNCommentsQuery query = new PostWithNCommentsQuery(post_id,100);
                 return postViewsService.getPostWithNLatestComments(query);

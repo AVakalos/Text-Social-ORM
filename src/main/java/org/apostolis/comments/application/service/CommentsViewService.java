@@ -72,7 +72,6 @@ public class CommentsViewService implements CommentsViewsUseCase {
                 return new LatestCommentOnPostView(
                         new PostsByUserId(new HashMap<>()), new CommentsByPostId(new HashMap<>()));
             }
-
             ArrayList<PostId> post_ids = new ArrayList<>();
             for(UserId user: own_and_following_posts.getData().keySet()){
                 post_ids.addAll(own_and_following_posts.getData().get(user).keySet());
@@ -82,7 +81,6 @@ public class CommentsViewService implements CommentsViewsUseCase {
             return new LatestCommentOnPostView(
                     new PostsByUserId(own_and_following_posts.getData()),
                     Objects.requireNonNullElseGet(latest_comments, () -> new CommentsByPostId(new HashMap<>())));
-
         };
         return transactionUtils.doInTransaction(getLatestComments);
     }

@@ -5,7 +5,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apostolis.users.domain.User;
-import org.apostolis.users.domain.UserId;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -43,13 +42,16 @@ public class UserEntity {
     @Fetch(FetchMode.SUBSELECT)
     private Set<UserEntity> followers = new HashSet<>();
 
-    public UserEntity(String username, String password, String role) {
+    private UserEntity(String username, String password, String role) {
         this.username = username;
         this.password = password;
         this.role = role;
     }
 
-    public User mapToDTO(){
+    public static UserEntity mapToEntity(User user){
+        return new UserEntity(user.getUsername(),user.getPassword(),user.getRole());
+    }
+    public User mapToDomain(){
         return new User(username, password, role);
     }
 

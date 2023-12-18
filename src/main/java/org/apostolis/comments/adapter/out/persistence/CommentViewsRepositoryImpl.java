@@ -28,8 +28,7 @@ public class CommentViewsRepositoryImpl implements CommentRepository {
         TransactionUtils.ThrowingFunction<Session, CommentsByPostId, Exception> dbtask = (session) -> {
             List<Long> numeric_ids = new ArrayList<>();
             for(PostId pid: post_ids){
-                numeric_ids.add(pid.getPost_id());
-                System.out.println(numeric_ids);
+                numeric_ids.add(pid.getValue());
             }
             String commentsQuery = """
                         select post.post_id as pid, comment_id as cid, text as c_text
@@ -56,7 +55,7 @@ public class CommentViewsRepositoryImpl implements CommentRepository {
         TransactionUtils.ThrowingFunction<Session, CommentsByPostId, Exception> dbtask = (session) -> {
             List<Long> numeric_ids = new ArrayList<>();
             for(PostId pid: post_ids){
-                numeric_ids.add(pid.getPost_id());
+                numeric_ids.add(pid.getValue());
             }
             String commentsQuery = """
                         select rc.pid as pid, rc.cid as cid, rc.c_text as c_text
@@ -87,7 +86,6 @@ public class CommentViewsRepositoryImpl implements CommentRepository {
         Map<PostId,Map<CommentId, CommentDetails>> results = new LinkedHashMap<>();
 
         for (Tuple comment : comment_tuples) {
-            System.out.println(comment);
             PostId post_id = new PostId((Long) comment.get("pid"));
             CommentId comment_id = new CommentId((Long) comment.get("cid"));
             if (!results.containsKey(post_id)) {

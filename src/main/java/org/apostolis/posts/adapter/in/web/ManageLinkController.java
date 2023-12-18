@@ -28,7 +28,7 @@ public class ManageLinkController {
         }catch(Exception k){
             throw new BadRequestResponse("post parameter must be an integer");
         }
-        CreateLinkCommand createLinkCommand = new CreateLinkCommand(App.currentUserId.get().getUser_id(),post);
+        CreateLinkCommand createLinkCommand = new CreateLinkCommand(App.currentUserId.get().getValue(),post);
         Map<String, Object> response = new HashMap<>();
         response.put("url",linkService.createLink(createLinkCommand));
         ctx.json(response);

@@ -11,6 +11,8 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 // User database CRUD operations
 @RequiredArgsConstructor
 public class UserRepositoryImpl implements UserRepository {
@@ -21,8 +23,7 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public void save(User user) {
         TransactionUtils.ThrowingConsumer<Session,Exception> saveTask = (session) -> {
-            System.out.println("Session: "+session);
-            session.persist(new UserEntity(user.getUsername(),user.getPassword(),user.getRole()));
+            session.persist(UserEntity.mapToEntity(user));
         };
         try{
             transactionUtils.doInTransaction(saveTask);
@@ -30,6 +31,52 @@ public class UserRepositoryImpl implements UserRepository {
         }catch(Exception e){
             logger.error(e.getMessage());
             throw new DatabaseException("Could not save new user",e);
+        }
+    }
+
+    @Override
+    public void saveFollowing(UserId user, UserId user_to_follow) {
+        TransactionUtils.ThrowingConsumer<Session, Exception> saveFollowingTask = (session) -> {
+            UserEntity userEntity = session.find(UserEntity.class, user.getValue());
+            UserEntity userToFollowEntity = session.find(UserEntity.class, user_to_follow.getValue());
+            userEntity.addFollowing(userToFollowEntity);
+            session.persist(userEntity);
+        };
+        try{
+            transactionUtils.doInTransaction(saveFollowingTask);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not save Following",e);
+        }
+    }
+
+    @Override
+    public void deleteFollowing(UserId user, UserId user_to_follow) {
+        TransactionUtils.ThrowingConsumer<Session, Exception> deleteFollowTask = (session) -> {
+            UserEntity userEntity = session.find(UserEntity.class, user.getValue());
+            UserEntity userToFollowEntity = session.find(UserEntity.class, user_to_follow.getValue());
+            userEntity.removeFollowing(userToFollowEntity);
+            session.persist(userEntity);
+        };
+        try{
+            transactionUtils.doInTransaction(deleteFollowTask);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not delete follow",e);
+        }
+    }
+
+    @Override
+    public Optional<User> findById(UserId user_id) {
+        TransactionUtils.ThrowingFunction<Session, Optional<User>, Exception> findByIdTask = (session) -> {
+           UserEntity userEntity = session.find(UserEntity.class, user_id.getValue());
+           return Optional.ofNullable(userEntity.mapToDomain());
+        };
+        try {
+            return transactionUtils.doInTransaction(findByIdTask);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not retrieve user id by username",e);
         }
     }
 

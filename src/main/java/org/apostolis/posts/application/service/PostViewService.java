@@ -77,7 +77,7 @@ public class PostViewService implements PostViewsUseCase {
     @Override
     public PostsWithNLatestCommentsView getPostWithNLatestComments(PostWithNCommentsQuery viewQuery) throws Exception {
         TransactionUtils.ThrowingFunction<Session, PostsWithNLatestCommentsView, Exception> getPosts = (session) -> {
-            PostsById post = postRepository.getPostById(new PostId(viewQuery.post_id()));
+            PostsById post = postRepository.getPostDetailsById(new PostId(viewQuery.post_id()));
 
             ArrayList<PostId> id = new ArrayList<>(post.getData().keySet());
             CommentsByPostId latest_N_comments =

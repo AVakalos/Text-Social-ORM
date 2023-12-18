@@ -156,8 +156,6 @@ public class PostsTest {
 
         Map<CommentId, CommentDetails> post1_comments = postsWithNLatestComments.getCommentsPerPost().getData().get(new PostId(1L));
         Map<CommentId, CommentDetails> post2_comments = postsWithNLatestComments.getCommentsPerPost().getData().get(new PostId(2L));
-        System.out.println("Test "+post1_comments);
-        System.out.println("Test "+post2_comments);
 
 
         assertEquals(2,postsWithNLatestComments.getCommentsPerPost().getData().keySet().size());

@@ -2,19 +2,20 @@ package org.apostolis.users.application.service;
 
 import lombok.RequiredArgsConstructor;
 import org.apostolis.common.TransactionUtils;
-import org.apostolis.users.adapter.out.persistence.UserEntity;
+import org.apostolis.users.application.ports.out.UserRepository;
 import org.apostolis.users.domain.User;
 import org.apostolis.users.domain.UserId;
 import org.apostolis.users.application.ports.in.FollowsCommand;
 import org.apostolis.users.application.ports.in.FollowsUseCase;
-import org.apostolis.users.application.ports.out.FollowViewsRepository;
 import org.hibernate.Session;
+
+import java.util.Optional;
 
 // Follows business logic
 @RequiredArgsConstructor
 public class FollowsService implements FollowsUseCase {
 
-    private final FollowViewsRepository followViewsRepository;
+    private final UserRepository userRepository;
     private final TransactionUtils transactionUtils;
 
     @Override
@@ -24,24 +25,14 @@ public class FollowsService implements FollowsUseCase {
             UserId user = followsCommand.user_id();
             UserId user_to_follow = followsCommand.follows();
 
-            UserEntity current_user_entity = session.get(UserEntity.class, user.getUser_id());
-            UserEntity following_user_entity = session.get(UserEntity.class, user_to_follow.getUser_id());
-            if(following_user_entity == null){
-                throw new IllegalArgumentException("Could not retrieve user: "+user_to_follow.getUser_id());
+            Optional<User> current_user = userRepository.findById(user);
+            Optional<User> following_user = userRepository.findById(user_to_follow);
+            if(current_user.isEmpty() || following_user.isEmpty()){
+                throw new IllegalArgumentException("Could not retrieve following users");
             }
+            current_user.get().addFollowingUser(following_user.get());
 
-            User current_user = current_user_entity.mapToDTO();
-            User following_user = following_user_entity.mapToDTO();
-
-
-            current_user.addFollowingUser(following_user);
-            //following_user.addFollower(current_user);
-
-            current_user_entity.addFollowing(following_user_entity);
-            //following_user_entity.addFollower(current_user_entity);
-
-            session.persist(current_user_entity);
-            //session.persist(following_user_entity);
+            userRepository.saveFollowing(user,user_to_follow);
         };
         transactionUtils.doInTransaction(followUsr);
     }
@@ -52,17 +43,14 @@ public class FollowsService implements FollowsUseCase {
             UserId user = followsCommand.user_id();
             UserId user_to_unfollow = followsCommand.follows();
 
-            UserEntity current_user_entity = session.get(UserEntity.class, user.getUser_id());
-            UserEntity unfollow_user_entity = session.get(UserEntity.class, user_to_unfollow.getUser_id());
-            if(unfollow_user_entity == null){
-                throw new IllegalArgumentException("Could not retrieve user: "+user_to_unfollow.getUser_id());
+            Optional<User> current_user = userRepository.findById(user);
+            Optional<User> unfollow_user = userRepository.findById(user_to_unfollow);
+            if(current_user.isEmpty() || unfollow_user.isEmpty()){
+                throw new IllegalArgumentException("Could not retrieve unfollowing users");
             }
-            User current_user = current_user_entity.mapToDTO();
-            User following_user = unfollow_user_entity.mapToDTO();
 
-            current_user.removeFollowingUser(following_user);
-            current_user_entity.removeFollowing(unfollow_user_entity);
-            session.persist(current_user_entity);
+            current_user.get().removeFollowingUser(unfollow_user.get());
+            userRepository.deleteFollowing(user,user_to_unfollow);
         };
         transactionUtils.doInTransaction(unfollowUsr);
     }

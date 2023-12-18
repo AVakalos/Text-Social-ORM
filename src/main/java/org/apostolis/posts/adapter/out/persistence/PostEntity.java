@@ -14,7 +14,6 @@ import org.hibernate.annotations.FetchMode;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 
 // Hibernate ORM Entity for Posts
@@ -22,7 +21,6 @@ import java.util.Set;
 @Table(name="posts")
 @DynamicUpdate
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-//@Getter
 public class PostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,7 +44,7 @@ public class PostEntity {
     @Fetch(FetchMode.SUBSELECT)
     Set<CommentEntity> post_comments = new HashSet<>();
 
-    public PostEntity(Long postCreator, String text, LocalDateTime createdAt){
+    private PostEntity(Long postCreator, String text, LocalDateTime createdAt){
         user_id = postCreator;
         this.text = text;
         this.createdAt = createdAt;
@@ -56,15 +54,15 @@ public class PostEntity {
         isShared = true;
     }
 
-    public void setUser(Long creator){
-        user_id = creator;
-    }
-
     public void addComment(CommentEntity newComment){
         post_comments.add(newComment);
     }
 
     public Post mapToDomain(){
         return new Post(new PostId(post_id), new UserId(user_id), text, createdAt);
+    }
+
+    public static PostEntity mapToEntity(Post post){
+        return new PostEntity(post.getUser().getValue(), post.getText(),post.getCreatedAt());
     }
 }

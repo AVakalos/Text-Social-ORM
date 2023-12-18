@@ -49,7 +49,7 @@ public class FollowsViewController {
     private List<UserDTO> mapToDTO(FollowsView data){
         List<UserDTO> userDTOs = new ArrayList<>();
         for(UserId user_id: data.getUsers().getData().keySet()){
-            userDTOs.add(new UserDTO(user_id.getUser_id(), data.getUsers().getData().get(user_id).username()));
+            userDTOs.add(new UserDTO(user_id.getValue(), data.getUsers().getData().get(user_id).username()));
         }
         return userDTOs;
     }

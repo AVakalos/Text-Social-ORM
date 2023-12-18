@@ -48,7 +48,6 @@ public class AccountTest {
         try {
             transactionUtils.doInTransaction(task);
         }catch(Exception e){
-            System.out.println(e.getMessage());
             throw new RuntimeException(e.getMessage());
         }
     }

@@ -35,12 +35,12 @@ public class CommentsViewController {
         List<PostWithCommentsDTO> postWithCommentsDTOS = new ArrayList<>();
         for(PostId post_id: requestData.getCommentsPerPost().getData().keySet()){
 
-            long numericId = post_id.getPost_id();
+            long numericId = post_id.getValue();
             Map<CommentId, CommentDetails> postComments = requestData.getCommentsPerPost().getData().get(post_id);
             List<CommentDTO> commentDTOs = new ArrayList<>();
 
             for(CommentId commentid: postComments.keySet()){
-                commentDTOs.add(new CommentDTO(commentid.getComment_id(), postComments.get(commentid).text()));
+                commentDTOs.add(new CommentDTO(commentid.getValue(), postComments.get(commentid).text()));
             }
             postWithCommentsDTOS.add(new PostWithCommentsDTO(
                     numericId,requestData.getOwnPosts().getData().get(post_id).text(),commentDTOs));
@@ -75,14 +75,14 @@ public class CommentsViewController {
                         requestData.getLatestCommentPerPost().getData().get(post_id).get(latestCommentId);
 
                 posts_with_latest_comments.add(
-                        new PostWithLatestCommentDTO(post_id.getPost_id(),
+                        new PostWithLatestCommentDTO(post_id.getValue(),
                                 requestData.getOwnOrFollowingPosts().getData().get(user_id).get(post_id).text(),
-                                latestCommentId.getComment_id(),
+                                latestCommentId.getValue(),
                                 commentDetails.text())
                 );
             }
             user_with_posts_and_latest_comments.add(
-                    new UserWithPostsAndLatestComment(user_id.getUser_id(), posts_with_latest_comments));
+                    new UserWithPostsAndLatestComment(user_id.getValue(), posts_with_latest_comments));
         }
 
         Map<String, Object> response = new HashMap<>();

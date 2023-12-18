@@ -6,6 +6,7 @@ import org.apostolis.common.TransactionUtils;
 import org.apostolis.exception.AuthenticationException;
 import org.apostolis.security.PasswordEncoder;
 import org.apostolis.security.TokenManager;
+import org.apostolis.users.adapter.out.persistence.UserEntity;
 import org.apostolis.users.application.ports.in.*;
 import org.apostolis.users.application.ports.out.UserRepository;
 import org.apostolis.users.domain.Role;

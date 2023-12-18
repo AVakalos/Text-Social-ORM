@@ -5,7 +5,7 @@ import lombok.*;
 import java.io.Serializable;
 
 // Wrapper for User id
-@Getter
+
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,6 +14,11 @@ public class UserId implements Serializable {
 
     @Positive
     private Long user_id;
+
+    public Long getValue() {
+        return user_id;
+    }
+
     public String toString(){
         return "User"+user_id;
     }
