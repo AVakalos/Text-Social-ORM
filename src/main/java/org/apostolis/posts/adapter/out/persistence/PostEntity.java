@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.apostolis.comments.adapter.out.persistence.CommentEntity;
+import org.apostolis.comments.domain.Comment;
 import org.apostolis.posts.domain.Post;
 import org.apostolis.posts.domain.PostId;
 import org.apostolis.users.domain.UserId;
@@ -25,6 +27,7 @@ public class PostEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(updatable = false, nullable = false)
+    @Getter
     private Long post_id;
 
     @Column(name="user_id")
@@ -40,9 +43,10 @@ public class PostEntity {
     @Column(nullable = false)
     private boolean isShared = false;
 
+    @Getter
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL , fetch = FetchType.LAZY, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    Set<CommentEntity> post_comments = new HashSet<>();
+    private Set<CommentEntity> post_comments = new HashSet<>();
 
     private PostEntity(Long postCreator, String text, LocalDateTime createdAt){
         user_id = postCreator;
@@ -54,15 +58,20 @@ public class PostEntity {
         isShared = true;
     }
 
-    public void addComment(CommentEntity newComment){
-        post_comments.add(newComment);
+    public void addComment(Comment newComment){
+        post_comments.add(CommentEntity.mapToEntity(newComment, this));
     }
 
-    public Post mapToDomain(){
-        return new Post(new PostId(post_id), new UserId(user_id), text, createdAt);
+//    public Post mapToDomain(){
+//        return new Post(new PostId(post_id), new UserId(user_id), text, createdAt);
+//    }
+
+    public Post mapToDomain(Set<Comment> comments) {
+        return new Post(new PostId(post_id), new UserId(user_id), text, createdAt, comments);
     }
 
     public static PostEntity mapToEntity(Post post){
         return new PostEntity(post.getUser().getValue(), post.getText(),post.getCreatedAt());
     }
+
 }

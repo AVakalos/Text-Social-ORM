@@ -12,6 +12,8 @@ import org.apostolis.users.domain.Role;
 import org.apostolis.users.domain.UserId;
 import org.hibernate.Session;
 
+import java.util.Set;
+
 // Business logic for comment crud operations
 @RequiredArgsConstructor
 public class CommentService implements CreateCommentUseCase {
@@ -25,7 +27,10 @@ public class CommentService implements CreateCommentUseCase {
             PostId post_id = createCommentCommand.post();
             UserId user_id = createCommentCommand.user();
             // Find the aggregate root
-            Post targetPost = postRepository.findById(post_id);
+            Post targetPost = postRepository.fetchPostWithComments(post_id);
+
+            //System.out.println("Domain "+targetPost.getPost_comments().size());
+
             // Prepare for calling business logic
             Role role = Role.valueOf(createCommentCommand.role());
             long comments_count = 0;
@@ -37,7 +42,7 @@ public class CommentService implements CreateCommentUseCase {
             targetPost.addComment(newComment,comments_count,role);
 
             // Persist new comment from aggregate root
-            postRepository.saveComment(post_id,newComment);
+            postRepository.updatePostComments(post_id, newComment);  //targetPost
         };
         transactionUtils.doInTransaction(createComment);
     }

@@ -5,6 +5,8 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.apostolis.comments.domain.Comment;
 import org.apostolis.posts.adapter.out.persistence.PostEntity;
+import org.apostolis.posts.domain.PostId;
+import org.apostolis.users.domain.UserId;
 
 import java.time.LocalDateTime;
 
@@ -44,5 +46,9 @@ public class CommentEntity {
                 comment.getUser().getValue(),
                 comment.getText(),
                 comment.getCreatedAt());
+    }
+
+    public Comment mapToDomain(){
+        return new Comment(new UserId(commentCreator), new PostId(post.getPost_id()),text);
     }
 }

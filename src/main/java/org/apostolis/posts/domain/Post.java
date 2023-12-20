@@ -1,7 +1,9 @@
 package org.apostolis.posts.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apostolis.AppConfig;
+import org.apostolis.comments.adapter.out.persistence.CommentEntity;
 import org.apostolis.comments.domain.Comment;
 import org.apostolis.comments.domain.CommentCreationException;
 import org.apostolis.users.domain.Role;
@@ -13,13 +15,14 @@ import java.util.Optional;
 import java.util.Set;
 
 @Getter
+@EqualsAndHashCode(exclude = {"post_comments"})
 public class Post{
     private PostId id;
     private final UserId user;
     private final String text;
     private final LocalDateTime createdAt;
 
-    Set<Comment> post_comments = new HashSet<>();
+    private Set<Comment> post_comments = new HashSet<>();
 
     private Post(UserId user, String text){
         this.user = user;
@@ -33,6 +36,16 @@ public class Post{
         this.text = text;
         this.createdAt = createdAt;
     }
+
+    public Post(PostId id, UserId user, String text, LocalDateTime createdAt, Set<Comment> comments){
+        this.id = id;
+        this.user = user;
+        this.text = text;
+        this.createdAt = createdAt;
+        this.post_comments = comments;
+    }
+
+
 
     public static Post createPost(UserId user, String text, Role role){
         long post_size = text.length();

@@ -11,7 +11,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class CommentId implements Serializable {
     @Positive
-    private Long comment_id;
+    private final Long comment_id;
 
     public Long getValue() {
         return comment_id;

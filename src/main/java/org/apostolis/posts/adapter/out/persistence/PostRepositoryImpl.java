@@ -28,7 +28,7 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public void savePost(Post postToSave) {
         TransactionUtils.ThrowingConsumer<Session,Exception> task = (session) ->
-                session.persist(PostEntity.mapToEntity(postToSave));
+            session.persist(PostEntity.mapToEntity(postToSave));
         try{
             transactionUtils.doInTransaction(task);
         }catch(Exception e){
@@ -38,13 +38,18 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public Post findById(PostId post_id) {
+    public Post fetchPostWithComments(PostId post_id) {
         TransactionUtils.ThrowingFunction<Session, Post, Exception> task = (session) -> {
             PostEntity postEntity = session.find(PostEntity.class, post_id.getValue());
             if(postEntity == null){
                 throw new CommentCreationException("Couldn't find the post with id: "+post_id.getValue());
             }
-            return postEntity.mapToDomain();
+            Set<CommentEntity> commentsEntities = postEntity.getPost_comments();
+            Set<Comment> comments = new HashSet<>();
+            for(CommentEntity c: commentsEntities){
+                comments.add(c.mapToDomain());
+            }
+            return postEntity.mapToDomain(comments);
         };
         try{
             return transactionUtils.doInTransaction(task);
@@ -55,13 +60,18 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     @Override
-    public void saveComment(PostId post_id, Comment newComment) {
+    public void updatePostComments(PostId post_id, Comment newComment) {
         TransactionUtils.ThrowingConsumer<Session,Exception> task = (session) -> {
             PostEntity postEntity = session.find(PostEntity.class, post_id.getValue());
             if(postEntity == null){
                 throw new CommentCreationException("Couldn't find the post with id: "+post_id.getValue());
             }
-            postEntity.addComment(CommentEntity.mapToEntity(newComment,postEntity));
+            postEntity.addComment(newComment);
+
+//            Set<Comment> comments = postToUpdate.getPost_comments();
+//            for(Comment comment: comments) {
+//                postEntity.addComment(CommentEntity.mapToEntity(comment,postEntity));
+//            }
             session.persist(postEntity);
         };
         try{

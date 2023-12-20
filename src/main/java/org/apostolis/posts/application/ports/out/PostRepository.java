@@ -11,8 +11,8 @@ import java.util.List;
 
 public interface PostRepository {
     void savePost(Post postToSave);
-    Post findById(PostId post_id);
-    void saveComment(PostId post_id, Comment newComment);
+    Post fetchPostWithComments(PostId post_id);
+    void updatePostComments(PostId post_id, Comment newComment);
 
     PostsById getPostDetailsById(PostId post_id);
     PostsByUserId getPostsGivenUsersIds(List<UserId> user_ids, PageRequest req);

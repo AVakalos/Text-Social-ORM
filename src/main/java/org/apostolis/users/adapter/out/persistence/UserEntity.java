@@ -5,6 +5,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.apostolis.users.domain.User;
+import org.apostolis.users.domain.UserId;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 
@@ -52,22 +53,18 @@ public class UserEntity {
         return new UserEntity(user.getUsername(),user.getPassword(),user.getRole());
     }
     public User mapToDomain(){
-        return new User(username, password, role);
+        return new User(new UserId(user_id), username, password, role);
+    }
+    public User mapToDomain(Set<User> following_users){
+        return new User(new UserId(user_id), username, password, role, following_users);
     }
 
     public void addFollowing(UserEntity to_follow){
-
-        boolean existed = following.add(to_follow);
-        if(!existed){
-            throw new IllegalArgumentException("You already follow user: " + to_follow.getUser_id());
-        }
+        following.add(to_follow);
     }
 
     public void removeFollowing(UserEntity to_unfollow){
-        boolean existed = following.remove(to_unfollow);
-        if(!existed){
-            throw new IllegalArgumentException("You were not following user: "+to_unfollow.getUser_id());
-        }
+        following.remove(to_unfollow);
     }
 
 //    public void addFollower(UserEntity follower){

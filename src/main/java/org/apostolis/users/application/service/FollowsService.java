@@ -9,8 +9,6 @@ import org.apostolis.users.application.ports.in.FollowsCommand;
 import org.apostolis.users.application.ports.in.FollowsUseCase;
 import org.hibernate.Session;
 
-import java.util.Optional;
-
 // Follows business logic
 @RequiredArgsConstructor
 public class FollowsService implements FollowsUseCase {
@@ -25,12 +23,17 @@ public class FollowsService implements FollowsUseCase {
             UserId user = followsCommand.user_id();
             UserId user_to_follow = followsCommand.follows();
 
-            Optional<User> current_user = userRepository.findById(user);
-            Optional<User> following_user = userRepository.findById(user_to_follow);
-            if(current_user.isEmpty() || following_user.isEmpty()){
+            //Optional<User> current_user = userRepository.findById(user);
+            //Optional<User> following_user = userRepository.findById(user_to_follow);
+
+            User current_user = userRepository.fetchUserWithFollowingUsers(user);
+            //current_user.getFollowing_users().forEach((c)->System.out.println("FOL: "+c));
+            User following_user = userRepository.fetchUserWithFollowingUsers(user_to_follow);
+
+            if(current_user == null || following_user == null){
                 throw new IllegalArgumentException("Could not retrieve following users");
             }
-            current_user.get().addFollowingUser(following_user.get());
+            current_user.addFollowingUser(following_user);
 
             userRepository.saveFollowing(user,user_to_follow);
         };
@@ -43,13 +46,22 @@ public class FollowsService implements FollowsUseCase {
             UserId user = followsCommand.user_id();
             UserId user_to_unfollow = followsCommand.follows();
 
-            Optional<User> current_user = userRepository.findById(user);
-            Optional<User> unfollow_user = userRepository.findById(user_to_unfollow);
-            if(current_user.isEmpty() || unfollow_user.isEmpty()){
+//            Optional<User> current_user = userRepository.findById(user);
+//            Optional<User> unfollow_user = userRepository.findById(user_to_unfollow);
+
+            User current_user = userRepository.fetchUserWithFollowingUsers(user);
+            //System.out.println("Current "+current_user.getId()+" username "+current_user.getUsername());
+            //current_user.getFollowing_users().forEach((c)->System.out.println("FOL: "+c.getId()));
+
+
+            User unfollow_user = userRepository.fetchUserWithFollowingUsers(user_to_unfollow);
+            //System.out.println("Unfollow "+unfollow_user.getId()+" username "+unfollow_user.getUsername());
+
+            if(current_user == null || unfollow_user == null){
                 throw new IllegalArgumentException("Could not retrieve unfollowing users");
             }
 
-            current_user.get().removeFollowingUser(unfollow_user.get());
+            current_user.removeFollowingUser(unfollow_user);
             userRepository.deleteFollowing(user,user_to_unfollow);
         };
         transactionUtils.doInTransaction(unfollowUsr);

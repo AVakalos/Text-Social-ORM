@@ -2,6 +2,8 @@ package org.apostolis.users.adapter.out.persistence;
 
 import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
+import org.apostolis.comments.adapter.out.persistence.CommentEntity;
+import org.apostolis.comments.domain.Comment;
 import org.apostolis.common.TransactionUtils;
 import org.apostolis.exception.DatabaseException;
 import org.apostolis.users.application.ports.out.UserRepository;
@@ -11,7 +13,9 @@ import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 // User database CRUD operations
 @RequiredArgsConstructor
@@ -77,6 +81,26 @@ public class UserRepositoryImpl implements UserRepository {
         }catch(Exception e){
             logger.error(e.getMessage());
             throw new DatabaseException("Could not retrieve user id by username",e);
+        }
+    }
+
+    @Override
+    public User fetchUserWithFollowingUsers(UserId user_id){
+        TransactionUtils.ThrowingFunction<Session, User, Exception> fetchTask = (session) -> {
+            UserEntity userEntity = session.find(UserEntity.class, user_id.getValue());
+
+            Set<UserEntity> userEntities = userEntity.getFollowing();
+            Set<User> followingUsers = new HashSet<>();
+            for(UserEntity f: userEntities){
+                followingUsers.add(f.mapToDomain());
+            }
+            return userEntity.mapToDomain(followingUsers);
+        };
+        try {
+            return transactionUtils.doInTransaction(fetchTask);
+        }catch(Exception e){
+            logger.error(e.getMessage());
+            throw new DatabaseException("Could not fetch user with following users",e);
         }
     }
 

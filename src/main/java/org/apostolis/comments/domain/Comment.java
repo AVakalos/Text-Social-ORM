@@ -1,5 +1,6 @@
 package org.apostolis.comments.domain;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.apostolis.AppConfig;
 import org.apostolis.posts.domain.PostId;
@@ -8,6 +9,7 @@ import org.apostolis.users.domain.UserId;
 import java.time.LocalDateTime;
 
 @Getter
+@EqualsAndHashCode
 public class Comment{
     private CommentId id;
     private final UserId user;

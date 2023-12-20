@@ -33,9 +33,9 @@ public class FollowsTest {
             String truncate_tables = "TRUNCATE TABLE users,comments, posts, followers RESTART IDENTITY CASCADE";
             session.createNativeMutationQuery(truncate_tables).executeUpdate();
             // register users
-            String insert_user1 = "INSERT INTO users (username,password,role) VALUES('1','pass','FREE')";
-            String insert_user_2 = "INSERT INTO users (username,password,role) VALUES('2','pass','PREMIUM')";
-            String insert_user_3 = "INSERT INTO users (username,password,role) VALUES('3','pass','PREMIUM')";
+            String insert_user1 = "INSERT INTO users (user_id, username,password,role) VALUES(default,'1','pass','FREE')";
+            String insert_user_2 = "INSERT INTO users (user_id,username,password,role) VALUES(default,'2','pass','PREMIUM')";
+            String insert_user_3 = "INSERT INTO users (user_id,username,password,role) VALUES(default,'3','pass','PREMIUM')";
             session.createNativeMutationQuery(insert_user1).executeUpdate();
             session.createNativeMutationQuery(insert_user_2).executeUpdate();
             session.createNativeMutationQuery(insert_user_3).executeUpdate();

@@ -12,7 +12,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class PostId implements Serializable {
     @Positive
-    private Long post_id;
+    private final Long post_id;
 
     public Long getValue() {
         return post_id;
